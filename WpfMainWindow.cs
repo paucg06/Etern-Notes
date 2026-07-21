@@ -1064,9 +1064,7 @@ namespace EternNotes
                 btnBorder.Child = itemGrid;
 
                 // Select Icon representation
-                string geometryStr = WpfVectorIcons.Folder;
-                if (proj.IconType == "Gamepad") geometryStr = WpfVectorIcons.Gamepad;
-                else if (proj.IconType == "Video") geometryStr = WpfVectorIcons.Video;
+                string geometryStr = WpfVectorIcons.GetIconGeometry(proj.IconType);
 
                 var icon = WpfVectorIcons.GetIcon(geometryStr, isSelected ? TextActive : TextMuted, 14);
                 icon.HorizontalAlignment = HorizontalAlignment.Left;
@@ -1140,10 +1138,7 @@ namespace EternNotes
             }
 
             // Bind icon path
-            string iconGeometry = WpfVectorIcons.Folder;
-            if (activeProject.IconType == "Gamepad") iconGeometry = WpfVectorIcons.Gamepad;
-            else if (activeProject.IconType == "Video") iconGeometry = WpfVectorIcons.Video;
-            projectIconPath.Data = Geometry.Parse(iconGeometry);
+            projectIconPath.Data = Geometry.Parse(WpfVectorIcons.GetIconGeometry(activeProject.IconType));
 
             txtProjectName.Text = activeProject.Name;
             txtProjectDesc.Text = activeProject.Description;
@@ -1703,15 +1698,114 @@ namespace EternNotes
             }
         }
 
+        private UIElement CreateIconGridSelector(string initialIcon, Action<string> onIconSelected)
+        {
+            var iconDefs = new[]
+            {
+                new { Name = "Folder", Icon = WpfVectorIcons.Folder },
+                new { Name = "Gamepad", Icon = WpfVectorIcons.Gamepad },
+                new { Name = "Video", Icon = WpfVectorIcons.Video },
+                new { Name = "Code", Icon = WpfVectorIcons.Code },
+                new { Name = "Star", Icon = WpfVectorIcons.Star },
+                new { Name = "Rocket", Icon = WpfVectorIcons.Rocket },
+                new { Name = "Terminal", Icon = WpfVectorIcons.Terminal },
+                new { Name = "Cpu", Icon = WpfVectorIcons.Cpu },
+                new { Name = "Lightning", Icon = WpfVectorIcons.Lightning },
+                new { Name = "Database", Icon = WpfVectorIcons.Database },
+                new { Name = "Palette", Icon = WpfVectorIcons.Palette },
+                new { Name = "Layers", Icon = WpfVectorIcons.Layers },
+                new { Name = "Globe", Icon = WpfVectorIcons.Globe },
+                new { Name = "Book", Icon = WpfVectorIcons.Book },
+                new { Name = "Music", Icon = WpfVectorIcons.Music }
+            };
+
+            var mainPanel = new StackPanel();
+
+            string currentSelected = string.IsNullOrEmpty(initialIcon) ? "Folder" : initialIcon;
+
+            var txtSelectedName = new TextBlock
+            {
+                Text = string.Format("Icono seleccionado: {0}", currentSelected),
+                Foreground = new SolidColorBrush(Color.FromRgb(0, 122, 204)),
+                FontSize = 11,
+                FontWeight = FontWeights.SemiBold,
+                Margin = new Thickness(0, 0, 0, 8)
+            };
+            mainPanel.Children.Add(txtSelectedName);
+
+            var wrap = new WrapPanel
+            {
+                Orientation = Orientation.Horizontal,
+                Margin = new Thickness(0, 0, 0, 10)
+            };
+            mainPanel.Children.Add(wrap);
+
+            var borderList = new List<Tuple<string, Border>>();
+
+            foreach (var item in iconDefs)
+            {
+                bool isSelected = item.Name.Equals(currentSelected, StringComparison.OrdinalIgnoreCase);
+
+                var border = new Border
+                {
+                    Width = 42,
+                    Height = 42,
+                    Background = isSelected ? new SolidColorBrush(Color.FromRgb(26, 56, 92)) : new SolidColorBrush(Color.FromRgb(32, 32, 35)),
+                    BorderBrush = isSelected ? new SolidColorBrush(Color.FromRgb(0, 122, 204)) : new SolidColorBrush(Color.FromRgb(55, 55, 60)),
+                    BorderThickness = new Thickness(isSelected ? 2 : 1),
+                    CornerRadius = new CornerRadius(6),
+                    Margin = new Thickness(4),
+                    Cursor = Cursors.Hand,
+                    ToolTip = item.Name
+                };
+
+                var iconPath = WpfVectorIcons.GetIcon(item.Icon, isSelected ? Brushes.White : new SolidColorBrush(Color.FromRgb(180, 180, 180)), 20);
+                iconPath.HorizontalAlignment = HorizontalAlignment.Center;
+                iconPath.VerticalAlignment = VerticalAlignment.Center;
+                border.Child = iconPath;
+
+                var localItem = item;
+                var localBorder = border;
+                borderList.Add(Tuple.Create(localItem.Name, localBorder));
+
+                border.MouseDown += (s, e) =>
+                {
+                    currentSelected = localItem.Name;
+                    txtSelectedName.Text = string.Format("Icono seleccionado: {0}", localItem.Name);
+                    if (onIconSelected != null) onIconSelected(localItem.Name);
+
+                    // Update visual selection borders
+                    foreach (var tuple in borderList)
+                    {
+                        bool sel = tuple.Item1.Equals(currentSelected, StringComparison.OrdinalIgnoreCase);
+                        tuple.Item2.Background = sel ? new SolidColorBrush(Color.FromRgb(26, 56, 92)) : new SolidColorBrush(Color.FromRgb(32, 32, 35));
+                        tuple.Item2.BorderBrush = sel ? new SolidColorBrush(Color.FromRgb(0, 122, 204)) : new SolidColorBrush(Color.FromRgb(55, 55, 60));
+                        tuple.Item2.BorderThickness = new Thickness(sel ? 2 : 1);
+                        var path = tuple.Item2.Child as System.Windows.Shapes.Path;
+                        if (path != null)
+                        {
+                            path.Fill = sel ? Brushes.White : new SolidColorBrush(Color.FromRgb(180, 180, 180));
+                        }
+                    }
+                };
+
+                wrap.Children.Add(border);
+            }
+
+            return mainPanel;
+        }
+
         private void ShowEditProjectDialog(Project proj)
         {
+            string selectedIcon = string.IsNullOrEmpty(proj.IconType) ? "Folder" : proj.IconType;
+
             var win = new Window
             {
                 WindowStyle = WindowStyle.None,
                 AllowsTransparency = true,
                 Background = Brushes.Transparent,
-                Width = 400,
-                Height = 300,
+                Width = 420,
+                Height = 440,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
                 Owner = this
             };
@@ -1750,20 +1844,16 @@ namespace EternNotes
             Grid.SetRow(formStack, 1);
 
             formStack.Children.Add(new TextBlock { Text = "Nombre del Proyecto", Foreground = TextMuted, FontSize = 10, FontWeight = FontWeights.Bold, Margin = new Thickness(0, 0, 0, 4) });
-            var txtName = new TextBox { Text = proj.Name, Background = BgMain, Foreground = TextActive, BorderBrush = BorderColor, BorderThickness = new Thickness(1), Padding = new Thickness(6), Margin = new Thickness(0, 0, 0, 12), FontSize = 12, CaretBrush = Brushes.White, SelectionBrush = new SolidColorBrush(Color.FromRgb(0, 122, 204)) };
+            var txtName = new TextBox { Text = proj.Name, Background = BgMain, Foreground = TextActive, BorderBrush = BorderColor, BorderThickness = new Thickness(1), Padding = new Thickness(6), Margin = new Thickness(0, 0, 0, 10), FontSize = 12, CaretBrush = Brushes.White, SelectionBrush = new SolidColorBrush(Color.FromRgb(0, 122, 204)) };
             formStack.Children.Add(txtName);
 
             formStack.Children.Add(new TextBlock { Text = "Descripción", Foreground = TextMuted, FontSize = 10, FontWeight = FontWeights.Bold, Margin = new Thickness(0, 0, 0, 4) });
-            var txtDesc = new TextBox { Text = proj.Description, Background = BgMain, Foreground = TextActive, BorderBrush = BorderColor, BorderThickness = new Thickness(1), Padding = new Thickness(6), Margin = new Thickness(0, 0, 0, 12), FontSize = 12, CaretBrush = Brushes.White, SelectionBrush = new SolidColorBrush(Color.FromRgb(0, 122, 204)) };
+            var txtDesc = new TextBox { Text = proj.Description, Background = BgMain, Foreground = TextActive, BorderBrush = BorderColor, BorderThickness = new Thickness(1), Padding = new Thickness(6), Margin = new Thickness(0, 0, 0, 10), FontSize = 12, CaretBrush = Brushes.White, SelectionBrush = new SolidColorBrush(Color.FromRgb(0, 122, 204)) };
             formStack.Children.Add(txtDesc);
 
-            formStack.Children.Add(new TextBlock { Text = "Tipo de Icono", Foreground = TextMuted, FontSize = 10, FontWeight = FontWeights.Bold, Margin = new Thickness(0, 0, 0, 4) });
-            var cbIcon = new ComboBox { FontSize = 11 };
-            cbIcon.Items.Add("Folder");
-            cbIcon.Items.Add("Gamepad");
-            cbIcon.Items.Add("Video");
-            cbIcon.SelectedItem = proj.IconType;
-            formStack.Children.Add(cbIcon);
+            formStack.Children.Add(new TextBlock { Text = "Seleccionar Icono", Foreground = TextMuted, FontSize = 10, FontWeight = FontWeights.Bold, Margin = new Thickness(0, 0, 0, 6) });
+            var iconGrid = CreateIconGridSelector(selectedIcon, icon => selectedIcon = icon);
+            formStack.Children.Add(iconGrid);
 
             var btnStack = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 15, 0, 0) };
             grid.Children.Add(btnStack);
@@ -1788,7 +1878,7 @@ namespace EternNotes
                 
                 proj.Name = txtName.Text.Trim();
                 proj.Description = txtDesc.Text.Trim();
-                proj.IconType = cbIcon.SelectedItem.ToString();
+                proj.IconType = selectedIcon;
 
                 Storage.Save(db);
                 win.DialogResult = true;
@@ -1907,14 +1997,16 @@ namespace EternNotes
 
         private void ShowAddProjectDialog()
         {
+            string selectedIcon = "Folder";
+
             // Custom modern borderless project creation window
             var win = new Window
             {
                 WindowStyle = WindowStyle.None,
                 AllowsTransparency = true,
                 Background = Brushes.Transparent,
-                Width = 400,
-                Height = 300,
+                Width = 420,
+                Height = 440,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
                 Owner = this
             };
@@ -1953,21 +2045,16 @@ namespace EternNotes
             Grid.SetRow(formStack, 1);
 
             formStack.Children.Add(new TextBlock { Text = "Nombre del Proyecto", Foreground = TextMuted, FontSize = 10, FontWeight = FontWeights.Bold, Margin = new Thickness(0, 0, 0, 4) });
-            var txtName = new TextBox { Background = BgMain, Foreground = TextActive, BorderBrush = BorderColor, BorderThickness = new Thickness(1), Padding = new Thickness(6), Margin = new Thickness(0, 0, 0, 12), FontSize = 12, CaretBrush = Brushes.White, SelectionBrush = new SolidColorBrush(Color.FromRgb(0, 122, 204)) };
+            var txtName = new TextBox { Background = BgMain, Foreground = TextActive, BorderBrush = BorderColor, BorderThickness = new Thickness(1), Padding = new Thickness(6), Margin = new Thickness(0, 0, 0, 10), FontSize = 12, CaretBrush = Brushes.White, SelectionBrush = new SolidColorBrush(Color.FromRgb(0, 122, 204)) };
             formStack.Children.Add(txtName);
 
             formStack.Children.Add(new TextBlock { Text = "Descripción", Foreground = TextMuted, FontSize = 10, FontWeight = FontWeights.Bold, Margin = new Thickness(0, 0, 0, 4) });
-            var txtDesc = new TextBox { Background = BgMain, Foreground = TextActive, BorderBrush = BorderColor, BorderThickness = new Thickness(1), Padding = new Thickness(6), Margin = new Thickness(0, 0, 0, 12), FontSize = 12, CaretBrush = Brushes.White, SelectionBrush = new SolidColorBrush(Color.FromRgb(0, 122, 204)) };
+            var txtDesc = new TextBox { Background = BgMain, Foreground = TextActive, BorderBrush = BorderColor, BorderThickness = new Thickness(1), Padding = new Thickness(6), Margin = new Thickness(0, 0, 0, 10), FontSize = 12, CaretBrush = Brushes.White, SelectionBrush = new SolidColorBrush(Color.FromRgb(0, 122, 204)) };
             formStack.Children.Add(txtDesc);
 
-            formStack.Children.Add(new TextBlock { Text = "Tipo de Icono", Foreground = TextMuted, FontSize = 10, FontWeight = FontWeights.Bold, Margin = new Thickness(0, 0, 0, 4) });
-            var cbIcon = new ComboBox { FontSize = 11 };
-            cbIcon.Items.Add("Folder");
-            cbIcon.Items.Add("Gamepad");
-            cbIcon.Items.Add("Video");
-            cbIcon.SelectedIndex = 0;
-
-            formStack.Children.Add(cbIcon);
+            formStack.Children.Add(new TextBlock { Text = "Seleccionar Icono", Foreground = TextMuted, FontSize = 10, FontWeight = FontWeights.Bold, Margin = new Thickness(0, 0, 0, 6) });
+            var iconGrid = CreateIconGridSelector(selectedIcon, icon => selectedIcon = icon);
+            formStack.Children.Add(iconGrid);
 
             var btnStack = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 15, 0, 0) };
             grid.Children.Add(btnStack);
@@ -1995,7 +2082,7 @@ namespace EternNotes
                     Id = Guid.NewGuid().ToString(),
                     Name = txtName.Text.Trim(),
                     Description = txtDesc.Text.Trim(),
-                    IconType = cbIcon.SelectedItem.ToString()
+                    IconType = selectedIcon
                 };
                 newProj.Columns.Add(new KanbanColumn { Id = "ToDo", Name = "PLANIFICADO", ColorHex = "#962828" });
                 newProj.Columns.Add(new KanbanColumn { Id = "InProgress", Name = "EN PROGRESO", ColorHex = "#146455" });
