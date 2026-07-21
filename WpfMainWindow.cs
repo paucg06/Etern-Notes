@@ -514,9 +514,28 @@ namespace EternNotes
             Grid.SetRow(menuBarControl, 1);
             mainGrid.RowDefinitions[1].Height = new GridLength(0);
 
-            // Hover triggers to show menu bar when mouse enters logoPanel (title bar) or menuBarControl
-            logoPanel.MouseEnter += (s, e) => ShowTopMenuBar();
-            menuBarControl.MouseEnter += (s, e) => ShowTopMenuBar();
+            // Smooth top zone mouse movement listener for seamless title-bar -> menu-bar interaction
+            mainGrid.MouseMove += (s, e) =>
+            {
+                if (isMenuContextOpen) return;
+
+                Point pos = e.GetPosition(mainGrid);
+                bool isMenuBarVisible = (menuBarControl != null && menuBarControl.Visibility == Visibility.Visible);
+                double activeTopZoneHeight = isMenuBarVisible ? 70.0 : 36.0;
+
+                // Exclude window control buttons (_ □ X) on top right (~140px width)
+                bool isOverWindowControls = (pos.Y <= 36.0 && pos.X >= (mainGrid.ActualWidth - 140.0));
+
+                if (pos.Y <= activeTopZoneHeight && !isOverWindowControls)
+                {
+                    ShowTopMenuBar();
+                }
+                else if (pos.Y > activeTopZoneHeight)
+                {
+                    HideTopMenuBar();
+                }
+            };
+
             mainGrid.MouseLeave += (s, e) => HideTopMenuBar();
 
             // 3. Content Layout Grid (Row 2)
