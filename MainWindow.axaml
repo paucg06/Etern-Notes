@@ -22,9 +22,9 @@
         <!-- Menu Bar -->
         <Menu Grid.Row="1" Background="#181818" Foreground="White">
             <MenuItem Header="_Archivo">
-                <MenuItem Header="📦 Exportar Todo (.en)..." Click="ExportAll_Click" />
-                <MenuItem Header="📁 Exportar Proyecto Activo (.en)..." Click="ExportActive_Click" />
-                <MenuItem Header="📥 Importar Archivo (.en)..." Click="ImportEn_Click" />
+                <MenuItem Header="📦 Exportar Todo (.etn)..." Click="ExportAll_Click" />
+                <MenuItem Header="📁 Exportar Proyecto Activo (.etn)..." Click="ExportActive_Click" />
+                <MenuItem Header="📥 Importar Archivo (.etn)..." Click="ImportEn_Click" />
                 <Separator/>
                 <MenuItem Header="💾 Guardar Base de Datos" Click="Save_Click" />
             </MenuItem>
@@ -33,7 +33,7 @@
                 <MenuItem Header="📝 Nueva Tarea..." Click="BtnNewTask_Click" />
             </MenuItem>
             <MenuItem Header="_Ver">
-                <MenuItem Header="📊 Vista Kanban (Default)" IsChecked="True" />
+                <MenuItem Header="📊 Vista Kanban (Default)" />
             </MenuItem>
             <MenuItem Header="A_yuda">
                 <MenuItem Header="ℹ️ Acerca de Etern-Notes" Click="About_Click" />

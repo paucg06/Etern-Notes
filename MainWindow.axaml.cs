@@ -288,20 +288,25 @@ namespace EternNotes
 
         private async void ExportAll_Click(object sender, RoutedEventArgs e)
         {
-            var dlg = new SaveFileDialog
+            var topLevel = TopLevel.GetTopLevel(this);
+            if (topLevel == null) return;
+
+            var file = await topLevel.StorageProvider.SaveFilePickerAsync(new Avalonia.Platform.Storage.FilePickerSaveOptions
             {
                 Title = "Exportar Todo (*.etn)",
                 DefaultExtension = "etn",
-                InitialFileName = $"EternNotes_Full_Backup_{DateTime.Now:yyyyMMdd_HHmmss}.etn"
-            };
-            dlg.Filters.Add(new FileDialogFilter { Name = "Etern Notes Package", Extensions = new List<string> { "etn", "en", "json" } });
+                SuggestedFileName = $"EternNotes_Full_Backup_{DateTime.Now:yyyyMMdd_HHmmss}.etn",
+                FileTypeChoices = new[]
+                {
+                    new Avalonia.Platform.Storage.FilePickerFileType("Etern Notes Package") { Patterns = new[] { "*.etn", "*.en", "*.json" } }
+                }
+            });
 
-            var result = await dlg.ShowAsync(this);
-            if (!string.IsNullOrEmpty(result))
+            if (file != null)
             {
                 try
                 {
-                    EternPackageHelper.ExportToEnFile(result, db.Projects, db.Tasks);
+                    EternPackageHelper.ExportToEnFile(file.Path.LocalPath, db.Projects, db.Tasks);
                 }
                 catch (Exception) { }
             }
@@ -310,21 +315,27 @@ namespace EternNotes
         private async void ExportActive_Click(object sender, RoutedEventArgs e)
         {
             if (activeProject == null) return;
-            var dlg = new SaveFileDialog
+
+            var topLevel = TopLevel.GetTopLevel(this);
+            if (topLevel == null) return;
+
+            var file = await topLevel.StorageProvider.SaveFilePickerAsync(new Avalonia.Platform.Storage.FilePickerSaveOptions
             {
                 Title = $"Exportar {activeProject.Name} (*.etn)",
                 DefaultExtension = "etn",
-                InitialFileName = $"{activeProject.Name.Replace(" ", "_")}.etn"
-            };
-            dlg.Filters.Add(new FileDialogFilter { Name = "Etern Notes Package", Extensions = new List<string> { "etn", "en", "json" } });
+                SuggestedFileName = $"{activeProject.Name.Replace(" ", "_")}.etn",
+                FileTypeChoices = new[]
+                {
+                    new Avalonia.Platform.Storage.FilePickerFileType("Etern Notes Package") { Patterns = new[] { "*.etn", "*.en", "*.json" } }
+                }
+            });
 
-            var result = await dlg.ShowAsync(this);
-            if (!string.IsNullOrEmpty(result))
+            if (file != null)
             {
                 try
                 {
                     var activeTasks = db.Tasks.Where(t => t.ProjectId == activeProject.Id).ToList();
-                    EternPackageHelper.ExportToEnFile(result, new List<Project> { activeProject }, activeTasks);
+                    EternPackageHelper.ExportToEnFile(file.Path.LocalPath, new List<Project> { activeProject }, activeTasks);
                 }
                 catch (Exception) { }
             }
@@ -332,19 +343,24 @@ namespace EternNotes
 
         private async void ImportEn_Click(object sender, RoutedEventArgs e)
         {
-            var dlg = new OpenFileDialog
+            var topLevel = TopLevel.GetTopLevel(this);
+            if (topLevel == null) return;
+
+            var files = await topLevel.StorageProvider.OpenFilePickerAsync(new Avalonia.Platform.Storage.FilePickerOpenOptions
             {
                 Title = "Importar Archivo (*.etn)",
-                AllowMultiple = false
-            };
-            dlg.Filters.Add(new FileDialogFilter { Name = "Etern Notes Package", Extensions = new List<string> { "etn", "en", "json" } });
+                AllowMultiple = false,
+                FileTypeFilter = new[]
+                {
+                    new Avalonia.Platform.Storage.FilePickerFileType("Etern Notes Package") { Patterns = new[] { "*.etn", "*.en", "*.json" } }
+                }
+            });
 
-            var results = await dlg.ShowAsync(this);
-            if (results != null && results.Length > 0)
+            if (files != null && files.Count > 0)
             {
                 try
                 {
-                    var package = EternPackageHelper.ReadEnFile(results[0]);
+                    var package = EternPackageHelper.ReadEnFile(files[0].Path.LocalPath);
                     foreach (var importedProj in package.Projects)
                     {
                         var importedTasks = package.Tasks.Where(t => t.ProjectId == importedProj.Id).ToList();
