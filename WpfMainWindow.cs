@@ -1596,17 +1596,29 @@ namespace EternNotes
             btnDel.MouseDown += (s, e) =>
             {
                 e.Handled = true;
-                if (ShowCustomMessageBox("¿Seguro que deseas eliminar esta tarea?", "Eliminar Tarea", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
-                {
-                    db.Tasks.Remove(task);
-                    Storage.Save(db);
-                    RefreshWorkspace();
-                }
+                DeleteTask(task);
             };
             actionsStack.Children.Add(btnDel);
 
             cardFooter.Children.Add(actionsStack);
             Grid.SetColumn(actionsStack, 1);
+
+            // Context menu for task card (edit/duplicate/delete)
+            var taskCtxMenu = new ContextMenu();
+
+            var mnuEditTask = new MenuItem { Header = "Editar Tarea" };
+            mnuEditTask.Click += (s, e) => ShowTaskDialog(task);
+            taskCtxMenu.Items.Add(mnuEditTask);
+
+            var mnuDuplicateTask = new MenuItem { Header = "Duplicar Tarea" };
+            mnuDuplicateTask.Click += (s, e) => DuplicateTask(task);
+            taskCtxMenu.Items.Add(mnuDuplicateTask);
+
+            var mnuDeleteTask = new MenuItem { Header = "Eliminar Tarea" };
+            mnuDeleteTask.Click += (s, e) => DeleteTask(task);
+            taskCtxMenu.Items.Add(mnuDeleteTask);
+
+            cardBorder.ContextMenu = taskCtxMenu;
 
             // Drag and Drop Event listeners
             cardBorder.PreviewMouseLeftButtonDown += (s, e) =>
@@ -1643,6 +1655,55 @@ namespace EternNotes
             };
 
             return cardBorder;
+        }
+
+        private void DeleteTask(DeveloperTask task)
+        {
+            if (task == null) return;
+            if (ShowCustomMessageBox("¿Seguro que deseas eliminar esta tarea?", "Eliminar Tarea", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+            {
+                db.Tasks.Remove(task);
+                Storage.Save(db);
+                RefreshWorkspace();
+            }
+        }
+
+        private void DuplicateTask(DeveloperTask originalTask)
+        {
+            if (originalTask == null || activeProject == null) return;
+
+            var newSubTasks = new List<SubTask>();
+            if (originalTask.SubTasks != null)
+            {
+                foreach (var sub in originalTask.SubTasks)
+                {
+                    newSubTasks.Add(new SubTask
+                    {
+                        Title = sub.Title,
+                        Completed = sub.Completed
+                    });
+                }
+            }
+
+            var newTask = new DeveloperTask
+            {
+                Id = Guid.NewGuid().ToString(),
+                ProjectId = originalTask.ProjectId,
+                Title = originalTask.Title + " (Copia)",
+                Description = originalTask.Description,
+                Priority = originalTask.Priority,
+                Tags = originalTask.Tags,
+                Assignee = originalTask.Assignee,
+                Link = originalTask.Link,
+                Deadline = originalTask.Deadline,
+                Status = originalTask.Status,
+                Notified = false,
+                SubTasks = newSubTasks
+            };
+
+            db.Tasks.Add(newTask);
+            Storage.Save(db);
+            RefreshWorkspace();
         }
 
         private void CheckDeadlinesAndNotify()
