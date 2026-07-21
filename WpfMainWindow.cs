@@ -2797,7 +2797,7 @@ namespace EternNotes
 
             popup.Child = darkCalendar;
 
-            btnCal.PreviewMouseLeftButtonDown += (s, e) =>
+            btnCal.PreviewMouseLeftButtonUp += (s, e) =>
             {
                 if ((DateTime.Now - lastClosedTime).TotalMilliseconds < 250)
                 {
