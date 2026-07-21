@@ -2779,6 +2779,7 @@ namespace EternNotes
             var popup = new System.Windows.Controls.Primitives.Popup
             {
                 StaysOpen = false,
+                AllowsTransparency = true,
                 PlacementTarget = txtDate,
                 Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom
             };
