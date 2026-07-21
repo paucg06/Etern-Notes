@@ -2497,8 +2497,7 @@ namespace EternNotes
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(8),
                 Padding = new Thickness(12),
-                Width = 240,
-                Effect = new DropShadowEffect { Color = Colors.Black, BlurRadius = 12, ShadowDepth = 4, Opacity = 0.6 }
+                Width = 240
             };
 
             var stack = new StackPanel();
