@@ -1645,15 +1645,6 @@ namespace EternNotes
                 }
             };
 
-            // Click to edit
-            cardBorder.MouseDown += (s, e) =>
-            {
-                if (e.ClickCount == 2)
-                {
-                    ShowTaskDialog(task);
-                }
-            };
-
             return cardBorder;
         }
 
