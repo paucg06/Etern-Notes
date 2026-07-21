@@ -87,9 +87,9 @@ namespace EternNotes
             WindowStartupLocation = WindowStartupLocation.CenterScreen;
             ResizeMode = ResizeMode.CanResize;
 
-            // Constraints to prevent covering the taskbar when maximized
-            MaxHeight = SystemParameters.WorkArea.Height;
-            MaxWidth = SystemParameters.WorkArea.Width;
+            // Allow true full screen maximization covering the entire screen including taskbar
+            MaxHeight = double.PositiveInfinity;
+            MaxWidth = double.PositiveInfinity;
 
             // Style scrollbars to be thin, dark, matching VS Code aesthetic
             try
