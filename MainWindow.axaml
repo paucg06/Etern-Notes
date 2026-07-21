@@ -51,7 +51,7 @@
 
                 <!-- Kanban Columns -->
                 <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
-                    <Grid Name="KanbanGrid" ColumnDefinitions="*,*,*" System.Threading.Tasks.Task.Delay="0">
+                    <Grid Name="KanbanGrid" ColumnDefinitions="*,*,*">
                         <!-- Columns generated dynamically -->
                     </Grid>
                 </ScrollViewer>
