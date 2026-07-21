@@ -2673,17 +2673,18 @@ namespace EternNotes
             {
                 Title = "Conflicto de Proyecto",
                 Width = 480,
-                Height = 220,
-                WindowStartupLocation = WindowStartupLocation.CenterOwner,
-                Owner = this,
+                Height = 210,
+                WindowStartupLocation = WindowStartupLocation.CenterScreen,
                 WindowStyle = WindowStyle.None,
                 AllowsTransparency = false,
                 Background = new SolidColorBrush(Color.FromRgb(26, 26, 26)),
-                ResizeMode = ResizeMode.NoResize
+                ResizeMode = ResizeMode.NoResize,
+                Topmost = true
             };
 
             var root = new Border
             {
+                Background = new SolidColorBrush(Color.FromRgb(26, 26, 26)),
                 BorderBrush = new SolidColorBrush(Color.FromRgb(0, 122, 204)),
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(8),
@@ -2695,6 +2696,7 @@ namespace EternNotes
             grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); // Title
             grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); // Desc
             grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); // Buttons
+            root.Child = grid;
 
             var txtTitle = new TextBlock
             {
@@ -2727,15 +2729,18 @@ namespace EternNotes
                 VerticalAlignment = VerticalAlignment.Bottom
             };
 
-            var btnReplace = CreateFlatButton("Reemplazar", new SolidColorBrush(Color.FromRgb(180, 40, 40)), new SolidColorBrush(Color.FromRgb(210, 50, 50)), Brushes.White);
+            var btnReplace = CreateFlatButton("Reemplazar", new SolidColorBrush(Color.FromRgb(180, 40, 40)), new SolidColorBrush(Color.FromRgb(210, 50, 50)), TextActive);
+            btnReplace.Width = 100;
             btnReplace.Margin = new Thickness(0, 0, 10, 0);
             btnReplace.Click += (s, e) => { result = ImportConflictOption.Replace; dlg.Close(); };
 
-            var btnCopy = CreateFlatButton("Crear Copia", new SolidColorBrush(Color.FromRgb(0, 122, 204)), new SolidColorBrush(Color.FromRgb(28, 151, 234)), Brushes.White);
+            var btnCopy = CreateFlatButton("Crear Copia", new SolidColorBrush(Color.FromRgb(0, 122, 204)), new SolidColorBrush(Color.FromRgb(30, 150, 240)), TextActive);
+            btnCopy.Width = 100;
             btnCopy.Margin = new Thickness(0, 0, 10, 0);
             btnCopy.Click += (s, e) => { result = ImportConflictOption.CreateCopy; dlg.Close(); };
 
-            var btnCancel = CreateFlatButton("Cancelar", new SolidColorBrush(Color.FromRgb(60, 60, 60)), new SolidColorBrush(Color.FromRgb(80, 80, 80)), Brushes.White);
+            var btnCancel = CreateFlatButton("Cancelar", new SolidColorBrush(Color.FromRgb(60, 60, 60)), new SolidColorBrush(Color.FromRgb(80, 80, 80)), TextActive);
+            btnCancel.Width = 90;
             btnCancel.Click += (s, e) => { result = ImportConflictOption.Cancel; dlg.Close(); };
 
             btnPanel.Children.Add(btnReplace);
@@ -2976,16 +2981,15 @@ namespace EternNotes
                 try
                 {
                     EternPackageHelper.ExportToEnFile(sfd.FileName, db.Projects, db.Tasks);
-                    MessageBox.Show(
-                        string.Format("¡Exportación completada exitosamente!\n\nSe han guardado todos los proyectos y tareas en:\n{0}", sfd.FileName),
+                    ShowCustomMessageBox(
                         "Exportación Exitosa",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Information
+                        string.Format("¡Exportación completada!\n\nSe han guardado todos los proyectos y tareas en:\n{0}", sfd.FileName),
+                        MessageBoxButton.OK
                     );
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("Error al exportar paquete .en: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    ShowCustomMessageBox("Error de Exportación", "Error al exportar paquete .en:\n" + ex.Message, MessageBoxButton.OK);
                 }
             }
         }
@@ -2994,11 +2998,11 @@ namespace EternNotes
         {
             if (activeProject == null)
             {
-                MessageBox.Show("No hay ningún proyecto activo para exportar.", "Aviso", MessageBoxButton.OK, MessageBoxImage.Warning);
+                ShowCustomMessageBox("Aviso", "No hay ningún proyecto activo para exportar.", MessageBoxButton.OK);
                 return;
             }
 
-            var activeTasks = db.Tasks.Where(t => t.ProjectId == activeProject.Id).ToList();
+            var activeTasks = db.Tasks.Where(t => t != null && t.ProjectId == activeProject.Id).ToList();
             var sfd = new Microsoft.Win32.SaveFileDialog
             {
                 Filter = "Etern Notes Package (*.en)|*.en",
@@ -3011,16 +3015,15 @@ namespace EternNotes
                 try
                 {
                     EternPackageHelper.ExportToEnFile(sfd.FileName, new List<Project> { activeProject }, activeTasks);
-                    MessageBox.Show(
-                        string.Format("¡Proyecto '{0}' exportado exitosamente!\n\nArchivo guardado en:\n{1}", activeProject.Name, sfd.FileName),
+                    ShowCustomMessageBox(
                         "Exportación Exitosa",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Information
+                        string.Format("¡Proyecto '{0}' exportado correctamente!\n\nArchivo guardado en:\n{1}", activeProject.Name, sfd.FileName),
+                        MessageBoxButton.OK
                     );
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("Error al exportar paquete .en: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    ShowCustomMessageBox("Error de Exportación", "Error al exportar paquete .en:\n" + ex.Message, MessageBoxButton.OK);
                 }
             }
         }
@@ -3029,7 +3032,7 @@ namespace EternNotes
         {
             var ofd = new Microsoft.Win32.OpenFileDialog
             {
-                Filter = "Etern Notes Package (*.en)|*.en;*.json",
+                Filter = "Etern Notes Package (*.en;*.json)|*.en;*.json|Todos los archivos (*.*)|*.*",
                 DefaultExt = ".en"
             };
 
@@ -3040,23 +3043,30 @@ namespace EternNotes
                     var package = EternPackageHelper.ReadEnFile(ofd.FileName);
                     if (package.Projects == null || package.Projects.Count == 0)
                     {
-                        MessageBox.Show("El archivo .en no contiene ningún proyecto válido.", "Aviso", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        ShowCustomMessageBox("Importación", "El archivo no contiene ningún proyecto válido.", MessageBoxButton.OK);
                         return;
                     }
 
                     int importedCount = 0;
-                    foreach (var importedProj in package.Projects)
-                    {
-                        var importedTasks = package.Tasks.Where(t => t.ProjectId == importedProj.Id).ToList();
+                    var importedProjects = package.Projects.ToList();
 
-                        var existingProj = db.Projects.FirstOrDefault(p => p.Name.Equals(importedProj.Name, StringComparison.OrdinalIgnoreCase));
+                    foreach (var importedProj in importedProjects)
+                    {
+                        if (importedProj == null) continue;
+
+                        var importedTasks = (package.Tasks ?? new List<DeveloperTask>())
+                            .Where(t => t != null && t.ProjectId == importedProj.Id)
+                            .ToList();
+
+                        var existingProj = db.Projects.FirstOrDefault(p => p != null && p.Name.Equals(importedProj.Name, StringComparison.OrdinalIgnoreCase));
                         if (existingProj != null)
                         {
                             var conflictResult = ShowImportConflictDialog(importedProj.Name);
                             if (conflictResult == ImportConflictOption.Replace)
                             {
+                                string targetId = existingProj.Id;
                                 db.Projects.Remove(existingProj);
-                                db.Tasks.RemoveAll(t => t.ProjectId == existingProj.Id);
+                                db.Tasks.RemoveAll(t => t != null && t.ProjectId == targetId);
 
                                 db.Projects.Add(importedProj);
                                 foreach (var task in importedTasks)
@@ -3069,7 +3079,6 @@ namespace EternNotes
                             else if (conflictResult == ImportConflictOption.CreateCopy)
                             {
                                 string newId = Guid.NewGuid().ToString();
-                                string oldId = importedProj.Id;
 
                                 importedProj.Id = newId;
                                 importedProj.Name = importedProj.Name + " (Copia)";
@@ -3104,12 +3113,12 @@ namespace EternNotes
                         Storage.Save(db);
                         RefreshProjects();
                         RefreshWorkspace();
-                        MessageBox.Show(string.Format("¡Se importaron {0} proyecto(s) correctamente!", importedCount), "Importación Exitosa", MessageBoxButton.OK, MessageBoxImage.Information);
+                        ShowCustomMessageBox("Importación Exitosa", string.Format("¡Se han importado {0} proyecto(s) correctamente!", importedCount), MessageBoxButton.OK);
                     }
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("Error al importar el archivo .en: " + ex.Message, "Error de Importación", MessageBoxButton.OK, MessageBoxImage.Error);
+                    ShowCustomMessageBox("Error de Importación", "No se pudo importar el archivo:\n" + ex.Message, MessageBoxButton.OK);
                 }
             }
         }
@@ -3130,42 +3139,39 @@ namespace EternNotes
                     Storage.Save(db);
                     string rawJson = File.ReadAllText(System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "EternNotes", "data.json"));
                     File.WriteAllText(sfd.FileName, rawJson);
-                    MessageBox.Show("Copia RAW JSON exportada en: " + sfd.FileName, "Backup Guardado", MessageBoxButton.OK, MessageBoxImage.Information);
+                    ShowCustomMessageBox("Backup Guardado", "Copia RAW JSON exportada en:\n" + sfd.FileName, MessageBoxButton.OK);
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("Error al exportar JSON: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    ShowCustomMessageBox("Error", "Error al exportar JSON:\n" + ex.Message, MessageBoxButton.OK);
                 }
             }
         }
 
         private void ShowShortcutsDialog()
         {
-            MessageBox.Show(
-                "⌨️ ATAJOS DE TECLADO EN ETERN-NOTES:\n\n" +
+            ShowCustomMessageBox(
+                "⌨️ Atajos de Teclado",
                 "• F11: Alternar Pantalla Completa\n" +
                 "• Ctrl + S: Guardar Base de Datos\n" +
                 "• Ctrl + E: Exportar Paquete .en\n" +
                 "• Ctrl + I: Importar Paquete .en\n" +
-                "• Esc: Cerrar Cuadros de Diálogo",
-                "Atajos de Teclado",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information
+                "• Esc: Cerrar Diálogos",
+                MessageBoxButton.OK
             );
         }
 
         private void ShowAboutDialog()
         {
-            MessageBox.Show(
+            ShowCustomMessageBox(
+                "ℹ️ Acerca de Etern-Notes",
                 "🚀 Etern-Notes v1.2 (Native Cross-Platform Workspace)\n\n" +
                 "Desarrollado para la gestión eficiente de proyectos y tareas.\n" +
                 "• Formato de Paquetes: .en (Etern Notes Package)\n" +
                 "• Licencia: MIT\n" +
                 "• Desarrollador: paucg06\n\n" +
                 "© 2026 Etern Studio.",
-                "Acerca de Etern-Notes",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information
+                MessageBoxButton.OK
             );
         }
     }

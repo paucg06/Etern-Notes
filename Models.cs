@@ -3,6 +3,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
+using System.Text;
 
 namespace EternNotes
 {
@@ -161,14 +162,49 @@ namespace EternNotes
 
         public static EternPackage ReadEnFile(string filePath)
         {
-            using (var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+            if (!File.Exists(filePath))
+                throw new FileNotFoundException("El archivo seleccionado no existe.");
+
+            string content = File.ReadAllText(filePath);
+            if (string.IsNullOrWhiteSpace(content))
+                throw new Exception("El archivo está vacío.");
+
+            // Try reading as EternPackage
+            try
             {
-                var serializer = new DataContractJsonSerializer(typeof(EternPackage));
-                var package = (EternPackage)serializer.ReadObject(fs);
-                if (package.Projects == null) package.Projects = new List<Project>();
-                if (package.Tasks == null) package.Tasks = new List<DeveloperTask>();
-                return package;
+                using (var ms = new MemoryStream(Encoding.UTF8.GetBytes(content)))
+                {
+                    var serializer = new DataContractJsonSerializer(typeof(EternPackage));
+                    var pkg = (EternPackage)serializer.ReadObject(ms);
+                    if (pkg != null && pkg.Projects != null && pkg.Projects.Count > 0)
+                    {
+                        if (pkg.Tasks == null) pkg.Tasks = new List<DeveloperTask>();
+                        return pkg;
+                    }
+                }
             }
+            catch { }
+
+            // Try reading as Database fallback
+            try
+            {
+                using (var ms = new MemoryStream(Encoding.UTF8.GetBytes(content)))
+                {
+                    var serializer = new DataContractJsonSerializer(typeof(Database));
+                    var dbObj = (Database)serializer.ReadObject(ms);
+                    if (dbObj != null && dbObj.Projects != null)
+                    {
+                        return new EternPackage
+                        {
+                            Projects = dbObj.Projects,
+                            Tasks = dbObj.Tasks ?? new List<DeveloperTask>()
+                        };
+                    }
+                }
+            }
+            catch { }
+
+            throw new Exception("El archivo no tiene un formato válido de paquete Etern Notes (.en / .json).");
         }
     }
 
