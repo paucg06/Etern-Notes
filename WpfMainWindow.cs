@@ -2783,6 +2783,12 @@ namespace EternNotes
                 Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom
             };
 
+            DateTime lastClosedTime = DateTime.MinValue;
+            popup.Closed += (s, e) =>
+            {
+                lastClosedTime = DateTime.Now;
+            };
+
             var darkCalendar = CreateCustomDarkCalendar(initialDate ?? DateTime.Today, initialDate, (selectedD) =>
             {
                 txtDate.Text = selectedD.ToString("yyyy-MM-dd");
@@ -2791,11 +2797,10 @@ namespace EternNotes
 
             popup.Child = darkCalendar;
 
-            btnCal.PreviewMouseDown += (s, e) =>
+            btnCal.PreviewMouseLeftButtonDown += (s, e) =>
             {
-                if (popup.IsOpen)
+                if ((DateTime.Now - lastClosedTime).TotalMilliseconds < 250)
                 {
-                    popup.IsOpen = false;
                     e.Handled = true;
                 }
                 else
