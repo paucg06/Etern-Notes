@@ -1,0 +1,13 @@
+# Executables and build artifacts
+*.exe
+*.dll
+*.pdb
+*.obj
+*.o
+*.user
+
+# Directories
+bin/
+obj/
+.vs/
+.idea/
