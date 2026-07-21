@@ -2482,12 +2482,163 @@ namespace EternNotes
                 Storage.Save(db);
                 win.DialogResult = true;
             };
-            btnStack.Children.Add(btnSave);
-
             if (win.ShowDialog() == true)
             {
                 RefreshWorkspace();
             }
+        }
+
+        private FrameworkElement CreateCustomDarkCalendar(DateTime displayMonth, DateTime? selectedDate, Action<DateTime> onDateSelected)
+        {
+            var mainBorder = new Border
+            {
+                Background = new SolidColorBrush(Color.FromRgb(25, 25, 28)),
+                BorderBrush = new SolidColorBrush(Color.FromRgb(55, 55, 60)),
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(8),
+                Padding = new Thickness(12),
+                Width = 240,
+                Effect = new DropShadowEffect { Color = Colors.Black, BlurRadius = 12, ShadowDepth = 4, Opacity = 0.6 }
+            };
+
+            var stack = new StackPanel();
+            mainBorder.Child = stack;
+
+            DateTime activeMonth = new DateTime(displayMonth.Year, displayMonth.Month, 1);
+
+            // Header Grid (Prev Month, Month/Year Text, Next Month)
+            var headerGrid = new Grid { Margin = new Thickness(0, 0, 0, 10) };
+            headerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            headerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            headerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            stack.Children.Add(headerGrid);
+
+            var btnPrev = new Border
+            {
+                Width = 24, Height = 24,
+                Background = Brushes.Transparent,
+                CornerRadius = new CornerRadius(4),
+                Cursor = Cursors.Hand
+            };
+            var txtPrev = new TextBlock { Text = "◄", Foreground = TextMuted, FontSize = 10, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
+            btnPrev.Child = txtPrev;
+            btnPrev.MouseEnter += (s, e) => { btnPrev.Background = new SolidColorBrush(Color.FromArgb(25, 255, 255, 255)); txtPrev.Foreground = TextActive; };
+            btnPrev.MouseLeave += (s, e) => { btnPrev.Background = Brushes.Transparent; txtPrev.Foreground = TextMuted; };
+            headerGrid.Children.Add(btnPrev);
+            Grid.SetColumn(btnPrev, 0);
+
+            var txtMonthTitle = new TextBlock
+            {
+                Text = activeMonth.ToString("MMMM yyyy", new System.Globalization.CultureInfo("es-ES")),
+                FontFamily = new FontFamily("Segoe UI"),
+                FontSize = 12,
+                FontWeight = FontWeights.Bold,
+                Foreground = TextActive,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            headerGrid.Children.Add(txtMonthTitle);
+            Grid.SetColumn(txtMonthTitle, 1);
+
+            var btnNext = new Border
+            {
+                Width = 24, Height = 24,
+                Background = Brushes.Transparent,
+                CornerRadius = new CornerRadius(4),
+                Cursor = Cursors.Hand
+            };
+            var txtNext = new TextBlock { Text = "►", Foreground = TextMuted, FontSize = 10, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
+            btnNext.Child = txtNext;
+            btnNext.MouseEnter += (s, e) => { btnNext.Background = new SolidColorBrush(Color.FromArgb(25, 255, 255, 255)); txtNext.Foreground = TextActive; };
+            btnNext.MouseLeave += (s, e) => { btnNext.Background = Brushes.Transparent; txtNext.Foreground = TextMuted; };
+            headerGrid.Children.Add(btnNext);
+            Grid.SetColumn(btnNext, 2);
+
+            // Days of week header
+            var daysHeaderGrid = new System.Windows.Controls.Primitives.UniformGrid { Columns = 7, Margin = new Thickness(0, 0, 0, 6) };
+            string[] dayNames = new[] { "Lu", "Ma", "Mi", "Ju", "Vi", "Sá", "Do" };
+            foreach (var d in dayNames)
+            {
+                daysHeaderGrid.Children.Add(new TextBlock
+                {
+                    Text = d,
+                    Foreground = new SolidColorBrush(Color.FromRgb(130, 130, 135)),
+                    FontSize = 10,
+                    FontWeight = FontWeights.Bold,
+                    HorizontalAlignment = HorizontalAlignment.Center
+                });
+            }
+            stack.Children.Add(daysHeaderGrid);
+
+            // 7x6 Days Grid
+            var daysGrid = new System.Windows.Controls.Primitives.UniformGrid { Columns = 7, Rows = 6 };
+            stack.Children.Add(daysGrid);
+
+            Action renderMonthDays = null;
+            renderMonthDays = () =>
+            {
+                daysGrid.Children.Clear();
+                txtMonthTitle.Text = activeMonth.ToString("MMMM yyyy", new System.Globalization.CultureInfo("es-ES"));
+
+                // Calculate start day of week (Monday = 0 ... Sunday = 6)
+                DayOfWeek firstDayEnum = activeMonth.DayOfWeek;
+                int startOffset = ((int)firstDayEnum + 6) % 7;
+
+                DateTime startDate = activeMonth.AddDays(-startOffset);
+
+                for (int i = 0; i < 42; i++)
+                {
+                    DateTime dayDate = startDate.AddDays(i);
+                    bool isCurrentMonth = dayDate.Month == activeMonth.Month;
+                    bool isSelected = selectedDate.HasValue && dayDate.Date == selectedDate.Value.Date;
+                    bool isToday = dayDate.Date == DateTime.Today;
+
+                    var dayCell = new Border
+                    {
+                        Height = 28,
+                        Background = isSelected ? new SolidColorBrush(Color.FromRgb(0, 122, 204)) : Brushes.Transparent,
+                        BorderBrush = isToday && !isSelected ? new SolidColorBrush(Color.FromRgb(0, 122, 204)) : Brushes.Transparent,
+                        BorderThickness = new Thickness(isToday && !isSelected ? 1 : 0),
+                        CornerRadius = new CornerRadius(4),
+                        Margin = new Thickness(1),
+                        Cursor = Cursors.Hand
+                    };
+
+                    var txtDay = new TextBlock
+                    {
+                        Text = dayDate.Day.ToString(),
+                        FontSize = 11,
+                        FontWeight = isSelected || isToday ? FontWeights.Bold : FontWeights.Normal,
+                        Foreground = isSelected ? Brushes.White : (isCurrentMonth ? TextActive : new SolidColorBrush(Color.FromRgb(80, 80, 85))),
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                        VerticalAlignment = VerticalAlignment.Center
+                    };
+                    dayCell.Child = txtDay;
+
+                    var localDate = dayDate;
+                    dayCell.MouseEnter += (s, e) =>
+                    {
+                        if (!isSelected) dayCell.Background = new SolidColorBrush(Color.FromArgb(40, 0, 122, 204));
+                    };
+                    dayCell.MouseLeave += (s, e) =>
+                    {
+                        if (!isSelected) dayCell.Background = Brushes.Transparent;
+                    };
+                    dayCell.MouseDown += (s, e) =>
+                    {
+                        if (onDateSelected != null) onDateSelected(localDate);
+                    };
+
+                    daysGrid.Children.Add(dayCell);
+                }
+            };
+
+            btnPrev.MouseDown += (s, e) => { activeMonth = activeMonth.AddMonths(-1); renderMonthDays(); };
+            btnNext.MouseDown += (s, e) => { activeMonth = activeMonth.AddMonths(1); renderMonthDays(); };
+
+            renderMonthDays();
+
+            return mainBorder;
         }
 
         private void ShowTaskDialog(DeveloperTask task)
@@ -2632,36 +2783,13 @@ namespace EternNotes
                 Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom
             };
 
-            var calBorder = new Border
+            var darkCalendar = CreateCustomDarkCalendar(initialDate ?? DateTime.Today, initialDate, (selectedD) =>
             {
-                Background = new SolidColorBrush(Color.FromRgb(25, 25, 28)),
-                BorderBrush = BorderColor,
-                BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(6),
-                Padding = new Thickness(6),
-                Effect = new DropShadowEffect { Color = Colors.Black, BlurRadius = 10, ShadowDepth = 3, Opacity = 0.5 }
-            };
+                txtDate.Text = selectedD.ToString("yyyy-MM-dd");
+                popup.IsOpen = false;
+            });
 
-            var calendar = new System.Windows.Controls.Calendar
-            {
-                SelectedDate = initialDate,
-                DisplayDate = initialDate ?? DateTime.Today,
-                Background = Brushes.Transparent,
-                Foreground = TextActive,
-                BorderThickness = new Thickness(0)
-            };
-
-            calendar.SelectedDatesChanged += (s, e) =>
-            {
-                if (calendar.SelectedDate.HasValue)
-                {
-                    txtDate.Text = calendar.SelectedDate.Value.ToString("yyyy-MM-dd");
-                    popup.IsOpen = false;
-                }
-            };
-
-            calBorder.Child = calendar;
-            popup.Child = calBorder;
+            popup.Child = darkCalendar;
 
             btnCal.MouseDown += (s, e) =>
             {
