@@ -2791,9 +2791,17 @@ namespace EternNotes
 
             popup.Child = darkCalendar;
 
-            btnCal.MouseDown += (s, e) =>
+            btnCal.PreviewMouseDown += (s, e) =>
             {
-                popup.IsOpen = !popup.IsOpen;
+                if (popup.IsOpen)
+                {
+                    popup.IsOpen = false;
+                    e.Handled = true;
+                }
+                else
+                {
+                    popup.IsOpen = true;
+                }
             };
 
             dlStack.Children.Add(dateInputGrid);
