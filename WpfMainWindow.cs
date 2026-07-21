@@ -1714,7 +1714,6 @@ namespace EternNotes
                 new { Name = "Database", Icon = WpfVectorIcons.Database },
                 new { Name = "Palette", Icon = WpfVectorIcons.Palette },
                 new { Name = "Layers", Icon = WpfVectorIcons.Layers },
-                new { Name = "Globe", Icon = WpfVectorIcons.Globe },
                 new { Name = "Book", Icon = WpfVectorIcons.Book },
                 new { Name = "Music", Icon = WpfVectorIcons.Music }
             };
