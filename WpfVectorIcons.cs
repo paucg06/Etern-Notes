@@ -33,7 +33,9 @@ namespace EternNotes
         public const string Globe = "M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,19.93C7.05,19.44 4,16.08 4,12C4,11.38 4.08,10.78 4.21,10.21L9,15V16A2,2 0 0,0 11,18V19.93M17.9,17.39C17.64,16.58 16.9,16 16,16H15V13A1,1 0 0,0 14,12H8V10H10A1,1 0 0,0 11,9V7H13A2,2 0 0,0 15,5V4.59C17.93,5.77 20,8.64 20,12C20,14.08 19.2,15.97 17.9,17.39Z";
         public const string Book = "M18,2A2,2 0 0,1 20,4V20A2,2 0 0,1 18,22H6C4.89,22 4,21.1 4,20V4C4,2.89 4.89,2 6,2H18M6,4V20H18V4H6Z";
         public const string Music = "M12,3V13.55C11.41,13.21 10.73,13 10,13A5,5 0 0,0 5,18A5,5 0 0,0 10,23A5,5 0 0,0 15,18V6H19V3H12Z";
-        public const string SidebarToggle = "M4,4 H20 V20 H4 Z M6,6 H9 V18 H6 Z M11,6 H18 V18 H11 Z";
+        public const string SidebarExpand = "M14,3.5 H7.5 C4.5,3.5 2,6 2,9 V15 C2,18 4.5,20.5 7.5,20.5 H14 V18.5 H7.5 C5.6,18.5 4,16.9 4,15 V9 C4,7.1 5.6,5.5 7.5,5.5 H14 V3.5 Z M9,11 H16.5 L14.2,8.7 L15.6,7.3 L21,12.7 L15.6,18.1 L14.2,16.7 L16.5,14.4 H9 V11 Z";
+        public const string SidebarCollapse = "M10,3.5 H16.5 C19.5,3.5 22,6 22,9 V15 C22,18 19.5,20.5 16.5,20.5 H10 V18.5 H16.5 C18.4,18.5 20,16.9 20,15 V9 C20,7.1 18.4,5.5 16.5,5.5 H10 V3.5 Z M15,11 H7.5 L9.8,8.7 L8.4,7.3 L3,12.7 L8.4,18.1 L9.8,16.7 L7.5,14.4 H15 V11 Z";
+        public const string SidebarToggle = SidebarExpand;
 
         public static string GetIconGeometry(string iconType)
         {

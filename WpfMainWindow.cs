@@ -587,7 +587,7 @@ namespace EternNotes
                 Cursor = Cursors.Hand,
                 VerticalAlignment = VerticalAlignment.Center
             };
-            var pathCollapse = WpfVectorIcons.GetIcon(WpfVectorIcons.SidebarToggle, TextMuted, 13);
+            var pathCollapse = WpfVectorIcons.GetIcon(WpfVectorIcons.SidebarCollapse, TextMuted, 13);
             pathCollapse.HorizontalAlignment = HorizontalAlignment.Center;
             pathCollapse.VerticalAlignment = VerticalAlignment.Center;
             btnCollapseSidebar.Child = pathCollapse;
@@ -678,8 +678,8 @@ namespace EternNotes
             // Toggle Sidebar Button (Expand Button, hidden by default when expanded)
             btnExpandSidebar = new Border
             {
-                Width = 32,
-                Height = 32,
+                Width = 24,
+                Height = 24,
                 Background = Brushes.Transparent,
                 CornerRadius = new CornerRadius(4),
                 Cursor = Cursors.Hand,
@@ -687,7 +687,7 @@ namespace EternNotes
                 VerticalAlignment = VerticalAlignment.Center,
                 Visibility = Visibility.Collapsed
             };
-            var pathToggle = WpfVectorIcons.GetIcon(WpfVectorIcons.SidebarToggle, TextMuted, 16);
+            var pathToggle = WpfVectorIcons.GetIcon(WpfVectorIcons.SidebarExpand, TextMuted, 13);
             pathToggle.HorizontalAlignment = HorizontalAlignment.Center;
             pathToggle.VerticalAlignment = VerticalAlignment.Center;
             btnExpandSidebar.Child = pathToggle;
