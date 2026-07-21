@@ -382,14 +382,14 @@ namespace EternNotes
             // Main Grid split: Title Bar, Menu Bar vs. Content
             mainGrid = new Grid();
             mainGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(36) }); // Title bar (Row 0)
-            mainGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(28) }); // Menu bar (Row 1)
+            mainGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(34) }); // Menu bar (Row 1)
             mainGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); // Content (Row 2)
             rootBorder.Child = mainGrid;
 
             // Setup WindowChrome for native border resizing and title bar dragging
             var chrome = new System.Windows.Shell.WindowChrome
             {
-                CaptionHeight = 42,
+                CaptionHeight = 36,
                 CornerRadius = new CornerRadius(8),
                 GlassFrameThickness = new Thickness(0),
                 ResizeBorderThickness = new Thickness(6)
@@ -477,6 +477,7 @@ namespace EternNotes
 
             // 2. Menu Bar (Row 1)
             var menuBar = CreateMenuBar();
+            System.Windows.Shell.WindowChrome.SetIsHitTestVisibleInChrome(menuBar, true);
             mainGrid.Children.Add(menuBar);
             Grid.SetRow(menuBar, 1);
 
@@ -2754,8 +2755,12 @@ namespace EternNotes
             {
                 Background = new SolidColorBrush(Color.FromRgb(24, 24, 24)),
                 Foreground = Brushes.White,
-                Padding = new Thickness(10, 2, 10, 2)
+                Padding = new Thickness(10, 4, 10, 4),
+                Height = 34,
+                VerticalAlignment = VerticalAlignment.Center,
+                VerticalContentAlignment = VerticalAlignment.Center
             };
+            System.Windows.Shell.WindowChrome.SetIsHitTestVisibleInChrome(menuBar, true);
 
             // 1. Archivo
             var menuFile = new MenuItem { Header = "_Archivo", Foreground = Brushes.White };
