@@ -290,11 +290,11 @@ namespace EternNotes
         {
             var dlg = new SaveFileDialog
             {
-                Title = "Exportar Todo (*.en)",
-                DefaultExtension = "en",
-                InitialFileName = $"EternNotes_Full_Backup_{DateTime.Now:yyyyMMdd_HHmmss}.en"
+                Title = "Exportar Todo (*.etn)",
+                DefaultExtension = "etn",
+                InitialFileName = $"EternNotes_Full_Backup_{DateTime.Now:yyyyMMdd_HHmmss}.etn"
             };
-            dlg.Filters.Add(new FileDialogFilter { Name = "Etern Notes Package", Extensions = new List<string> { "en" } });
+            dlg.Filters.Add(new FileDialogFilter { Name = "Etern Notes Package", Extensions = new List<string> { "etn", "en", "json" } });
 
             var result = await dlg.ShowAsync(this);
             if (!string.IsNullOrEmpty(result))
@@ -312,11 +312,11 @@ namespace EternNotes
             if (activeProject == null) return;
             var dlg = new SaveFileDialog
             {
-                Title = $"Exportar {activeProject.Name} (*.en)",
-                DefaultExtension = "en",
-                InitialFileName = $"{activeProject.Name.Replace(" ", "_")}.en"
+                Title = $"Exportar {activeProject.Name} (*.etn)",
+                DefaultExtension = "etn",
+                InitialFileName = $"{activeProject.Name.Replace(" ", "_")}.etn"
             };
-            dlg.Filters.Add(new FileDialogFilter { Name = "Etern Notes Package", Extensions = new List<string> { "en" } });
+            dlg.Filters.Add(new FileDialogFilter { Name = "Etern Notes Package", Extensions = new List<string> { "etn", "en", "json" } });
 
             var result = await dlg.ShowAsync(this);
             if (!string.IsNullOrEmpty(result))
@@ -334,10 +334,10 @@ namespace EternNotes
         {
             var dlg = new OpenFileDialog
             {
-                Title = "Importar Archivo (*.en)",
+                Title = "Importar Archivo (*.etn)",
                 AllowMultiple = false
             };
-            dlg.Filters.Add(new FileDialogFilter { Name = "Etern Notes Package", Extensions = new List<string> { "en", "json" } });
+            dlg.Filters.Add(new FileDialogFilter { Name = "Etern Notes Package", Extensions = new List<string> { "etn", "en", "json" } });
 
             var results = await dlg.ShowAsync(this);
             if (results != null && results.Length > 0)

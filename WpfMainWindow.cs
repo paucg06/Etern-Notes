@@ -33,6 +33,8 @@ namespace EternNotes
         private Border btnCollapseSidebar;
         private Border btnExpandSidebar;
         private StackPanel projInfoPanel;
+        private UIElement menuBarControl;
+        private bool isMenuContextOpen = false;
         
         // Kanban layout
         private Grid kanbanGrid;
@@ -86,6 +88,15 @@ namespace EternNotes
             Height = 720;
             WindowStartupLocation = WindowStartupLocation.CenterScreen;
             ResizeMode = ResizeMode.CanResize;
+
+            // Auto-collapse sidebar when window width is resized to small size
+            this.SizeChanged += (s, e) =>
+            {
+                if (e.NewSize.Width < 780)
+                {
+                    CollapseSidebar();
+                }
+            };
 
             // Allow true full screen maximization covering the entire screen including taskbar
             MaxHeight = double.PositiveInfinity;
@@ -406,10 +417,12 @@ namespace EternNotes
             Grid.SetRow(titleBar, 0);
 
             var titleBarGrid = new Grid();
+            titleBarGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) }); // Title & Logo
+            titleBarGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); // Window controls (_ □ X)
             titleBar.Child = titleBarGrid;
 
             // Logo & Title
-            var logoPanel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(15, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
+            var logoPanel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(15, 0, 10, 0), VerticalAlignment = VerticalAlignment.Center };
             var logoIcon = WpfVectorIcons.GetIcon(WpfVectorIcons.Gamepad, new SolidColorBrush(Color.FromRgb(0, 122, 204)), 18);
             logoPanel.Children.Add(logoIcon);
 
@@ -420,15 +433,18 @@ namespace EternNotes
                 FontSize = 13,
                 FontWeight = FontWeights.Bold,
                 Foreground = new SolidColorBrush(Color.FromRgb(200, 200, 200)),
-                Margin = new Thickness(10, 0, 0, 0),
-                VerticalAlignment = VerticalAlignment.Center
+                Margin = new Thickness(10, 0, 10, 0),
+                VerticalAlignment = VerticalAlignment.Center,
+                TextTrimming = TextTrimming.CharacterEllipsis
             };
             logoPanel.Children.Add(titleText);
             titleBarGrid.Children.Add(logoPanel);
+            Grid.SetColumn(logoPanel, 0);
 
             // Close & Minimize controls stack
             var controlsPanel = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
             titleBarGrid.Children.Add(controlsPanel);
+            Grid.SetColumn(controlsPanel, 1);
 
             // Minimize button
             var btnMin = CreateTitleButton(WpfVectorIcons.Minimize, "Minimizar", (s, e) => WindowState = WindowState.Minimized);
@@ -475,11 +491,18 @@ namespace EternNotes
             var btnClose = CreateTitleButton(WpfVectorIcons.Close, "Cerrar", (s, e) => { Storage.Save(db); this.Close(); }, isCloseButton: true);
             controlsPanel.Children.Add(btnClose);
 
-            // 2. Menu Bar (Row 1)
-            var menuBar = CreateMenuBarControl();
-            System.Windows.Shell.WindowChrome.SetIsHitTestVisibleInChrome(menuBar, true);
-            mainGrid.Children.Add(menuBar);
-            Grid.SetRow(menuBar, 1);
+            // 2. Menu Bar (Row 1 - Auto Show on Hover)
+            menuBarControl = CreateMenuBarControl();
+            menuBarControl.Visibility = Visibility.Collapsed;
+            System.Windows.Shell.WindowChrome.SetIsHitTestVisibleInChrome(menuBarControl, true);
+            mainGrid.Children.Add(menuBarControl);
+            Grid.SetRow(menuBarControl, 1);
+            mainGrid.RowDefinitions[1].Height = new GridLength(0);
+
+            // Hover triggers to show menu bar when mouse enters title bar or top area
+            titleBar.MouseEnter += (s, e) => ShowTopMenuBar();
+            menuBarControl.MouseEnter += (s, e) => ShowTopMenuBar();
+            mainGrid.MouseLeave += (s, e) => HideTopMenuBar();
 
             // 3. Content Layout Grid (Row 2)
             contentGrid = new Grid();
@@ -655,8 +678,8 @@ namespace EternNotes
             projInfoPanel.Children.Add(projectIconPath);
 
             var projTitles = new StackPanel { Margin = new Thickness(15, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
-            txtProjectName = new TextBlock { Text = "Proyecto", Foreground = TextActive, FontSize = 18, FontWeight = FontWeights.Bold };
-            txtProjectDesc = new TextBlock { Text = "Descripción", Foreground = TextMuted, FontSize = 11, Margin = new Thickness(0, 3, 0, 0) };
+            txtProjectName = new TextBlock { Text = "Proyecto", Foreground = TextActive, FontSize = 18, FontWeight = FontWeights.Bold, TextTrimming = TextTrimming.CharacterEllipsis };
+            txtProjectDesc = new TextBlock { Text = "Descripción", Foreground = TextMuted, FontSize = 11, Margin = new Thickness(0, 3, 0, 0), TextTrimming = TextTrimming.CharacterEllipsis };
             projTitles.Children.Add(txtProjectName);
             projTitles.Children.Add(txtProjectDesc);
             projInfoPanel.Children.Add(projTitles);
@@ -772,6 +795,46 @@ namespace EternNotes
                 zoomSlider.Value = newZoom;
                 e.Handled = true; // Intercept event completely to perform layout zoom
             };
+        }
+
+        private void ShowTopMenuBar()
+        {
+            if (menuBarControl != null)
+            {
+                menuBarControl.Visibility = Visibility.Visible;
+                if (mainGrid != null && mainGrid.RowDefinitions.Count > 1)
+                {
+                    mainGrid.RowDefinitions[1].Height = new GridLength(34);
+                }
+            }
+        }
+
+        private void HideTopMenuBar()
+        {
+            if (menuBarControl != null && !isMenuContextOpen)
+            {
+                menuBarControl.Visibility = Visibility.Collapsed;
+                if (mainGrid != null && mainGrid.RowDefinitions.Count > 1)
+                {
+                    mainGrid.RowDefinitions[1].Height = new GridLength(0);
+                }
+            }
+        }
+
+        private void CollapseSidebar()
+        {
+            if (!isSidebarCollapsed)
+            {
+                ToggleSidebar();
+            }
+        }
+
+        private void ExpandSidebar()
+        {
+            if (isSidebarCollapsed)
+            {
+                ToggleSidebar();
+            }
         }
 
         private void ToggleSidebar()
@@ -2834,16 +2897,18 @@ namespace EternNotes
                 HasDropShadow = true
             };
             System.Windows.Shell.WindowChrome.SetIsHitTestVisibleInChrome(cm, true);
+            cm.Opened += (s, e) => { isMenuContextOpen = true; ShowTopMenuBar(); };
+            cm.Closed += (s, e) => { isMenuContextOpen = false; HideTopMenuBar(); };
 
-            var itemExportAll = new MenuItem { Header = "📦 Exportar Todo (.en)...", Foreground = Brushes.White, FontSize = 12 };
+            var itemExportAll = new MenuItem { Header = "📦 Exportar Todo (.etn)...", Foreground = Brushes.White, FontSize = 12 };
             itemExportAll.Click += (s, e) => ExportAllEnPackage();
             cm.Items.Add(itemExportAll);
 
-            var itemExportActive = new MenuItem { Header = "📁 Exportar Proyecto Activo (.en)...", Foreground = Brushes.White, FontSize = 12 };
+            var itemExportActive = new MenuItem { Header = "📁 Exportar Proyecto Activo (.etn)...", Foreground = Brushes.White, FontSize = 12 };
             itemExportActive.Click += (s, e) => ExportActiveProjectEnPackage();
             cm.Items.Add(itemExportActive);
 
-            var itemImport = new MenuItem { Header = "📥 Importar Archivo (.en)...", Foreground = Brushes.White, FontSize = 12 };
+            var itemImport = new MenuItem { Header = "📥 Importar Archivo (.etn)...", Foreground = Brushes.White, FontSize = 12 };
             itemImport.Click += (s, e) => ImportEnPackage();
             cm.Items.Add(itemImport);
 
@@ -2853,7 +2918,7 @@ namespace EternNotes
             itemSave.Click += (s, e) =>
             {
                 Storage.Save(db);
-                MessageBox.Show("Base de datos guardada correctamente.", "Guardado", MessageBoxButton.OK, MessageBoxImage.Information);
+                ShowCustomMessageBox("Guardado", "Base de datos guardada correctamente.", MessageBoxButton.OK);
             };
             cm.Items.Add(itemSave);
 
@@ -2880,6 +2945,8 @@ namespace EternNotes
                 HasDropShadow = true
             };
             System.Windows.Shell.WindowChrome.SetIsHitTestVisibleInChrome(cm, true);
+            cm.Opened += (s, e) => { isMenuContextOpen = true; ShowTopMenuBar(); };
+            cm.Closed += (s, e) => { isMenuContextOpen = false; HideTopMenuBar(); };
 
             var itemNewProj = new MenuItem { Header = "➕ Nuevo Proyecto...", Foreground = Brushes.White, FontSize = 12 };
             itemNewProj.Click += (s, e) => ShowAddProjectDialog();
@@ -2906,6 +2973,8 @@ namespace EternNotes
                 HasDropShadow = true
             };
             System.Windows.Shell.WindowChrome.SetIsHitTestVisibleInChrome(cm, true);
+            cm.Opened += (s, e) => { isMenuContextOpen = true; ShowTopMenuBar(); };
+            cm.Closed += (s, e) => { isMenuContextOpen = false; HideTopMenuBar(); };
 
             var itemKanban = new MenuItem { Header = "📊 Vista Kanban (Default)", IsChecked = true, Foreground = Brushes.White, FontSize = 12 };
             cm.Items.Add(itemKanban);
@@ -2931,6 +3000,8 @@ namespace EternNotes
                 HasDropShadow = true
             };
             System.Windows.Shell.WindowChrome.SetIsHitTestVisibleInChrome(cm, true);
+            cm.Opened += (s, e) => { isMenuContextOpen = true; ShowTopMenuBar(); };
+            cm.Closed += (s, e) => { isMenuContextOpen = false; HideTopMenuBar(); };
 
             var itemRawJson = new MenuItem { Header = "⚙️ Exportar Backup RAW JSON...", Foreground = Brushes.White, FontSize = 12 };
             itemRawJson.Click += (s, e) => ExportRawJsonBackup();
@@ -2953,6 +3024,8 @@ namespace EternNotes
                 HasDropShadow = true
             };
             System.Windows.Shell.WindowChrome.SetIsHitTestVisibleInChrome(cm, true);
+            cm.Opened += (s, e) => { isMenuContextOpen = true; ShowTopMenuBar(); };
+            cm.Closed += (s, e) => { isMenuContextOpen = false; HideTopMenuBar(); };
 
             var itemShortcuts = new MenuItem { Header = "⌨️ Atajos de Teclado", Foreground = Brushes.White, FontSize = 12 };
             itemShortcuts.Click += (s, e) => ShowShortcutsDialog();
@@ -2971,9 +3044,9 @@ namespace EternNotes
         {
             var sfd = new Microsoft.Win32.SaveFileDialog
             {
-                Filter = "Etern Notes Package (*.en)|*.en",
-                DefaultExt = ".en",
-                FileName = string.Format("EternNotes_Full_Backup_{0}.en", DateTime.Now.ToString("yyyyMMdd_HHmmss"))
+                Filter = "Etern Notes Package (*.etn)|*.etn;*.en;*.json|Todos los archivos (*.*)|*.*",
+                DefaultExt = ".etn",
+                FileName = string.Format("EternNotes_Full_Backup_{0}.etn", DateTime.Now.ToString("yyyyMMdd_HHmmss"))
             };
 
             if (sfd.ShowDialog() == true)
@@ -2989,7 +3062,7 @@ namespace EternNotes
                 }
                 catch (Exception ex)
                 {
-                    ShowCustomMessageBox("Error de Exportación", "Error al exportar paquete .en:\n" + ex.Message, MessageBoxButton.OK);
+                    ShowCustomMessageBox("Error de Exportación", "Error al exportar paquete .etn:\n" + ex.Message, MessageBoxButton.OK);
                 }
             }
         }
@@ -3005,9 +3078,9 @@ namespace EternNotes
             var activeTasks = db.Tasks.Where(t => t != null && t.ProjectId == activeProject.Id).ToList();
             var sfd = new Microsoft.Win32.SaveFileDialog
             {
-                Filter = "Etern Notes Package (*.en)|*.en",
-                DefaultExt = ".en",
-                FileName = string.Format("{0}.en", activeProject.Name.Replace(" ", "_"))
+                Filter = "Etern Notes Package (*.etn)|*.etn;*.en;*.json|Todos los archivos (*.*)|*.*",
+                DefaultExt = ".etn",
+                FileName = string.Format("{0}.etn", activeProject.Name.Replace(" ", "_"))
             };
 
             if (sfd.ShowDialog() == true)
@@ -3023,7 +3096,7 @@ namespace EternNotes
                 }
                 catch (Exception ex)
                 {
-                    ShowCustomMessageBox("Error de Exportación", "Error al exportar paquete .en:\n" + ex.Message, MessageBoxButton.OK);
+                    ShowCustomMessageBox("Error de Exportación", "Error al exportar paquete .etn:\n" + ex.Message, MessageBoxButton.OK);
                 }
             }
         }
@@ -3032,8 +3105,8 @@ namespace EternNotes
         {
             var ofd = new Microsoft.Win32.OpenFileDialog
             {
-                Filter = "Etern Notes Package (*.en;*.json)|*.en;*.json|Todos los archivos (*.*)|*.*",
-                DefaultExt = ".en"
+                Filter = "Etern Notes Package (*.etn;*.en;*.json)|*.etn;*.en;*.json|Todos los archivos (*.*)|*.*",
+                DefaultExt = ".etn"
             };
 
             if (ofd.ShowDialog() == true)
@@ -3154,8 +3227,8 @@ namespace EternNotes
                 "⌨️ Atajos de Teclado",
                 "• F11: Alternar Pantalla Completa\n" +
                 "• Ctrl + S: Guardar Base de Datos\n" +
-                "• Ctrl + E: Exportar Paquete .en\n" +
-                "• Ctrl + I: Importar Paquete .en\n" +
+                "• Ctrl + E: Exportar Paquete .etn\n" +
+                "• Ctrl + I: Importar Paquete .etn\n" +
                 "• Esc: Cerrar Diálogos",
                 MessageBoxButton.OK
             );
@@ -3167,7 +3240,7 @@ namespace EternNotes
                 "ℹ️ Acerca de Etern-Notes",
                 "🚀 Etern-Notes v1.2 (Native Cross-Platform Workspace)\n\n" +
                 "Desarrollado para la gestión eficiente de proyectos y tareas.\n" +
-                "• Formato de Paquetes: .en (Etern Notes Package)\n" +
+                "• Formato de Paquetes: .etn (Etern Notes Package)\n" +
                 "• Licencia: MIT\n" +
                 "• Desarrollador: paucg06\n\n" +
                 "© 2026 Etern Studio.",
