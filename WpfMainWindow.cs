@@ -2573,7 +2573,7 @@ namespace EternNotes
             colGrid2.Children.Add(lnStack);
             Grid.SetColumn(lnStack, 2);
 
-            // Deadline and Status row (Clean DatePicker for day selection)
+            // Deadline and Status row (Custom Dark Vector Calendar Picker)
             var colGrid3 = new Grid { Margin = new Thickness(0, 0, 0, 10) };
             colGrid3.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             colGrid3.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(10) });
@@ -2582,20 +2582,94 @@ namespace EternNotes
 
             var dlStack = new StackPanel();
             dlStack.Children.Add(new TextBlock { Text = "Fecha Límite", Foreground = TextMuted, FontSize = 10, FontWeight = FontWeights.Bold, Margin = new Thickness(0, 0, 0, 4) });
+
+            var dateInputGrid = new Grid();
+            dateInputGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            dateInputGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
             DateTime? initialDate = isEdit && task.Deadline != DateTime.MinValue ? (DateTime?)task.Deadline.Date : DateTime.Today.AddDays(1);
-            var dpDate = new DatePicker
+            string formattedDate = initialDate.HasValue ? initialDate.Value.ToString("yyyy-MM-dd") : "";
+
+            var txtDate = new TextBox
             {
-                SelectedDate = initialDate,
+                Text = formattedDate,
                 Background = BgMain,
                 Foreground = TextActive,
                 BorderBrush = BorderColor,
                 BorderThickness = new Thickness(1),
-                Padding = new Thickness(4),
+                Padding = new Thickness(6),
                 FontSize = 11.5,
-                VerticalAlignment = VerticalAlignment.Center,
-                HorizontalAlignment = HorizontalAlignment.Stretch
+                CaretBrush = Brushes.White,
+                SelectionBrush = new SolidColorBrush(Color.FromRgb(0, 122, 204))
             };
-            dlStack.Children.Add(dpDate);
+            dateInputGrid.Children.Add(txtDate);
+            Grid.SetColumn(txtDate, 0);
+
+            var btnCal = new Border
+            {
+                Width = 32,
+                Background = new SolidColorBrush(Color.FromRgb(35, 35, 38)),
+                BorderBrush = BorderColor,
+                BorderThickness = new Thickness(0, 1, 1, 1),
+                CornerRadius = new CornerRadius(0, 4, 4, 0),
+                Cursor = Cursors.Hand
+            };
+            var calIcon = WpfVectorIcons.GetIcon(WpfVectorIcons.Calendar, TextMuted, 13);
+            calIcon.HorizontalAlignment = HorizontalAlignment.Center;
+            calIcon.VerticalAlignment = VerticalAlignment.Center;
+            btnCal.Child = calIcon;
+            dateInputGrid.Children.Add(btnCal);
+            Grid.SetColumn(btnCal, 1);
+
+            btnCal.MouseEnter += (s, e) => { btnCal.Background = new SolidColorBrush(Color.FromRgb(50, 50, 55)); calIcon.Fill = TextActive; };
+            btnCal.MouseLeave += (s, e) => { btnCal.Background = new SolidColorBrush(Color.FromRgb(35, 35, 38)); calIcon.Fill = TextMuted; };
+
+            // Calendar Popup
+            var popup = new System.Windows.Controls.Primitives.Popup
+            {
+                StaysOpen = false,
+                PlacementTarget = txtDate,
+                Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom
+            };
+
+            var calBorder = new Border
+            {
+                Background = new SolidColorBrush(Color.FromRgb(25, 25, 28)),
+                BorderBrush = BorderColor,
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(6),
+                Padding = new Thickness(6),
+                Effect = new DropShadowEffect { Color = Colors.Black, BlurRadius = 10, ShadowDepth = 3, Opacity = 0.5 }
+            };
+
+            var calendar = new System.Windows.Controls.Calendar
+            {
+                SelectedDate = initialDate,
+                DisplayDate = initialDate ?? DateTime.Today,
+                Background = Brushes.Transparent,
+                Foreground = TextActive,
+                BorderThickness = new Thickness(0)
+            };
+
+            calendar.SelectedDatesChanged += (s, e) =>
+            {
+                if (calendar.SelectedDate.HasValue)
+                {
+                    txtDate.Text = calendar.SelectedDate.Value.ToString("yyyy-MM-dd");
+                    popup.IsOpen = false;
+                }
+            };
+
+            calBorder.Child = calendar;
+            popup.Child = calBorder;
+
+            btnCal.MouseDown += (s, e) =>
+            {
+                popup.IsOpen = !popup.IsOpen;
+            };
+
+            dlStack.Children.Add(dateInputGrid);
+            dlStack.Children.Add(popup);
             colGrid3.Children.Add(dlStack);
             Grid.SetColumn(dlStack, 0);
 
@@ -2639,10 +2713,18 @@ namespace EternNotes
                 }
 
                 DateTime deadlineVal = DateTime.MinValue;
-                if (dpDate.SelectedDate.HasValue)
+                if (!string.IsNullOrEmpty(txtDate.Text.Trim()))
                 {
-                    DateTime d = dpDate.SelectedDate.Value;
-                    deadlineVal = new DateTime(d.Year, d.Month, d.Day, 18, 0, 0);
+                    DateTime d;
+                    if (DateTime.TryParse(txtDate.Text.Trim(), out d))
+                    {
+                        deadlineVal = new DateTime(d.Year, d.Month, d.Day, 18, 0, 0);
+                    }
+                    else
+                    {
+                        ShowCustomMessageBox("Formato de fecha inválido. Utiliza AAAA-MM-DD.", "Error Fecha", MessageBoxButton.OK);
+                        return;
+                    }
                 }
 
                 if (isEdit)
