@@ -1722,16 +1722,6 @@ namespace EternNotes
 
             string currentSelected = string.IsNullOrEmpty(initialIcon) ? "Folder" : initialIcon;
 
-            var txtSelectedName = new TextBlock
-            {
-                Text = string.Format("Icono seleccionado: {0}", currentSelected),
-                Foreground = new SolidColorBrush(Color.FromRgb(0, 122, 204)),
-                FontSize = 11,
-                FontWeight = FontWeights.SemiBold,
-                Margin = new Thickness(0, 0, 0, 8)
-            };
-            mainPanel.Children.Add(txtSelectedName);
-
             var wrap = new WrapPanel
             {
                 Orientation = Orientation.Horizontal,
@@ -1770,7 +1760,6 @@ namespace EternNotes
                 border.MouseDown += (s, e) =>
                 {
                     currentSelected = localItem.Name;
-                    txtSelectedName.Text = string.Format("Icono seleccionado: {0}", localItem.Name);
                     if (onIconSelected != null) onIconSelected(localItem.Name);
 
                     // Update visual selection borders
