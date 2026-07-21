@@ -1,12 +1,15 @@
 # PowerShell Compile Script for Native WPF Etern-Notes
 
+$scriptDir = $PSScriptRoot
+if (-not $scriptDir) { $scriptDir = (Get-Location).Path }
+
 $compiler = "C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
-$outputExe = "C:\Users\paucr\.gemini\antigravity\scratch\Etern-Notes\EternNotes.exe"
+$outputExe = Join-Path $scriptDir "EternNotes.exe"
 
 $sourceFiles = @(
-    "C:\Users\paucr\.gemini\antigravity\scratch\Etern-Notes\Models.cs",
-    "C:\Users\paucr\.gemini\antigravity\scratch\Etern-Notes\WpfVectorIcons.cs",
-    "C:\Users\paucr\.gemini\antigravity\scratch\Etern-Notes\WpfMainWindow.cs"
+    (Join-Path $scriptDir "Models.cs"),
+    (Join-Path $scriptDir "WpfVectorIcons.cs"),
+    (Join-Path $scriptDir "WpfMainWindow.cs")
 )
 
 # WPF Assembly Paths
@@ -48,7 +51,7 @@ if ($LASTEXITCODE -eq 0) {
         $desktopPath = [System.IO.Path]::Combine([System.Environment]::GetFolderPath("Desktop"), "EternNotes.lnk")
         $Shortcut = $WshShell.CreateShortcut($desktopPath)
         $Shortcut.TargetPath = $outputExe
-        $Shortcut.WorkingDirectory = "C:\Users\paucr\.gemini\antigravity\scratch\Etern-Notes"
+        $Shortcut.WorkingDirectory = $scriptDir
         $Shortcut.Description = "Native Dark Developer Task & Notes Planner"
         $Shortcut.Save()
         Write-Host "¡Acceso directo creado con éxito en: $desktopPath!" -ForegroundColor Green
