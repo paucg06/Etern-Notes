@@ -118,7 +118,7 @@ namespace DevPlanner
     {
         private static readonly string FolderPath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), 
-            "DevPlanner"
+            "EternNotes"
         );
         private static readonly string FilePath = Path.Combine(FolderPath, "data.json");
 

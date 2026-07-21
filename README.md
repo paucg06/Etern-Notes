@@ -1,8 +1,8 @@
-# DevPlanner / Etern Notes 🚀
+# Etern-Notes 🚀
 
 Una aplicación de escritorio moderna, elegante y ligera construida para desarrolladores, creadores y diseñadores que necesitan organizar sus proyectos, tareas y notas en un solo lugar.
 
-![DevPlanner](https://img.shields.io/badge/C%23-WPF-purple.svg)
+![Etern-Notes](https://img.shields.io/badge/C%23-WPF-purple.svg)
 ![License](https://img.shields.io/badge/License-MIT-blue.svg)
 
 ---
@@ -25,7 +25,7 @@ Si deseas compilar el proyecto en tu máquina local:
 ./compile.ps1
 ```
 
-O ejecuta directamente el binario `DevPlanner.exe`.
+O ejecuta directamente el binario `EternNotes.exe`.
 
 ---
 

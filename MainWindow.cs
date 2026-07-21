@@ -399,7 +399,7 @@ namespace DevPlanner
 
             var titleText = new TextBlock
             {
-                Text = "DevPlanner // Native Workspace",
+                Text = "Etern-Notes // Native Workspace",
                 FontFamily = new FontFamily("Segoe UI"),
                 FontSize = 13,
                 FontWeight = FontWeights.Bold,

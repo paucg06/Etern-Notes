@@ -1,12 +1,12 @@
-# PowerShell Compile Script for Native WPF DevPlanner
+# PowerShell Compile Script for Native WPF Etern-Notes
 
 $compiler = "C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
-$outputExe = "C:\Users\paucr\.gemini\antigravity\scratch\devplanner\DevPlanner.exe"
+$outputExe = "C:\Users\paucr\.gemini\antigravity\scratch\Etern-Notes\EternNotes.exe"
 
 $sourceFiles = @(
-    "C:\Users\paucr\.gemini\antigravity\scratch\devplanner\Models.cs",
-    "C:\Users\paucr\.gemini\antigravity\scratch\devplanner\VectorIcons.cs",
-    "C:\Users\paucr\.gemini\antigravity\scratch\devplanner\MainWindow.cs"
+    "C:\Users\paucr\.gemini\antigravity\scratch\Etern-Notes\Models.cs",
+    "C:\Users\paucr\.gemini\antigravity\scratch\Etern-Notes\VectorIcons.cs",
+    "C:\Users\paucr\.gemini\antigravity\scratch\Etern-Notes\MainWindow.cs"
 )
 
 # WPF Assembly Paths
@@ -45,30 +45,16 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "Creando acceso directo en el Escritorio..." -ForegroundColor Cyan
     try {
         $WshShell = New-Object -ComObject WScript.Shell
-        $desktopPath = [System.IO.Path]::Combine([System.Environment]::GetFolderPath("Desktop"), "DevPlanner.lnk")
+        $desktopPath = [System.IO.Path]::Combine([System.Environment]::GetFolderPath("Desktop"), "EternNotes.lnk")
         $Shortcut = $WshShell.CreateShortcut($desktopPath)
         $Shortcut.TargetPath = $outputExe
-        $Shortcut.WorkingDirectory = "C:\Users\paucr\.gemini\antigravity\scratch\devplanner"
-        $Shortcut.Description = "Native Dark Developer Task Planner"
+        $Shortcut.WorkingDirectory = "C:\Users\paucr\.gemini\antigravity\scratch\Etern-Notes"
+        $Shortcut.Description = "Native Dark Developer Task & Notes Planner"
         $Shortcut.Save()
         Write-Host "¡Acceso directo creado con éxito en: $desktopPath!" -ForegroundColor Green
     }
     catch {
         Write-Warning "No se pudo crear el acceso directo en el Escritorio. Detalles: $_"
-    }
-
-    # Clean up obsolete web files to keep workspace tidy
-    $obsoleteFiles = @(
-        "C:\Users\paucr\.gemini\antigravity\scratch\devplanner\Backend.cs",
-        "C:\Users\paucr\.gemini\antigravity\scratch\devplanner\index.html",
-        "C:\Users\paucr\.gemini\antigravity\scratch\devplanner\style.css",
-        "C:\Users\paucr\.gemini\antigravity\scratch\devplanner\app.js"
-    )
-    foreach ($file in $obsoleteFiles) {
-        if (Test-Path $file) {
-            Remove-Item $file -Force
-            Write-Host "Eliminado archivo obsoleto: $([System.IO.Path]::GetFileName($file))" -ForegroundColor DarkGray
-        }
     }
 } else {
     Write-Error "Error de compilación nativa. Por favor revisa los mensajes de error arriba."
