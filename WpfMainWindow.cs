@@ -476,7 +476,7 @@ namespace EternNotes
             controlsPanel.Children.Add(btnClose);
 
             // 2. Menu Bar (Row 1)
-            var menuBar = CreateMenuBar();
+            var menuBar = CreateMenuBarControl();
             System.Windows.Shell.WindowChrome.SetIsHitTestVisibleInChrome(menuBar, true);
             mainGrid.Children.Add(menuBar);
             Grid.SetRow(menuBar, 1);
@@ -2749,96 +2749,217 @@ namespace EternNotes
             return result;
         }
 
-        private Menu CreateMenuBar()
+        private UIElement CreateMenuBarControl()
         {
-            var menuBar = new Menu
+            var menuPanel = new StackPanel
             {
+                Orientation = Orientation.Horizontal,
                 Background = new SolidColorBrush(Color.FromRgb(24, 24, 24)),
-                Foreground = Brushes.White,
-                Padding = new Thickness(10, 4, 10, 4),
                 Height = 34,
-                VerticalAlignment = VerticalAlignment.Center,
-                VerticalContentAlignment = VerticalAlignment.Center
+                VerticalAlignment = VerticalAlignment.Center
             };
-            System.Windows.Shell.WindowChrome.SetIsHitTestVisibleInChrome(menuBar, true);
+            System.Windows.Shell.WindowChrome.SetIsHitTestVisibleInChrome(menuPanel, true);
 
-            // 1. Archivo
-            var menuFile = new MenuItem { Header = "_Archivo", Foreground = Brushes.White };
+            var btnFile = CreateMenuButton("Archivo", (s, e) => ShowFileContextMenu(s as FrameworkElement));
+            var btnEdit = CreateMenuButton("Editar", (s, e) => ShowEditContextMenu(s as FrameworkElement));
+            var btnView = CreateMenuButton("Ver", (s, e) => ShowViewContextMenu(s as FrameworkElement));
+            var btnTools = CreateMenuButton("Herramientas", (s, e) => ShowToolsContextMenu(s as FrameworkElement));
+            var btnHelp = CreateMenuButton("Ayuda", (s, e) => ShowHelpContextMenu(s as FrameworkElement));
 
-            var itemExportAll = new MenuItem { Header = "📦 Exportar Todo (.en)...", Foreground = Brushes.White };
+            menuPanel.Children.Add(btnFile);
+            menuPanel.Children.Add(btnEdit);
+            menuPanel.Children.Add(btnView);
+            menuPanel.Children.Add(btnTools);
+            menuPanel.Children.Add(btnHelp);
+
+            return menuPanel;
+        }
+
+        private Button CreateMenuButton(string text, RoutedEventHandler onClick)
+        {
+            var btn = new Button
+            {
+                Content = text,
+                FontFamily = new FontFamily("Segoe UI"),
+                FontSize = 12,
+                FontWeight = FontWeights.SemiBold,
+                Foreground = new SolidColorBrush(Color.FromRgb(220, 220, 220)),
+                Background = Brushes.Transparent,
+                BorderThickness = new Thickness(0),
+                Padding = new Thickness(12, 4, 12, 4),
+                Margin = new Thickness(4, 2, 0, 2),
+                Cursor = Cursors.Hand,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            System.Windows.Shell.WindowChrome.SetIsHitTestVisibleInChrome(btn, true);
+
+            var template = new ControlTemplate(typeof(Button));
+            var borderFactory = new FrameworkElementFactory(typeof(Border));
+            borderFactory.Name = "border";
+            borderFactory.SetValue(Border.BackgroundProperty, new TemplateBindingExtension(Button.BackgroundProperty));
+            borderFactory.SetValue(Border.CornerRadiusProperty, new CornerRadius(4));
+            borderFactory.SetValue(Border.PaddingProperty, new TemplateBindingExtension(Button.PaddingProperty));
+
+            var contentPresenter = new FrameworkElementFactory(typeof(ContentPresenter));
+            contentPresenter.SetValue(ContentPresenter.HorizontalAlignmentProperty, HorizontalAlignment.Center);
+            contentPresenter.SetValue(ContentPresenter.VerticalAlignmentProperty, VerticalAlignment.Center);
+            borderFactory.AppendChild(contentPresenter);
+
+            template.VisualTree = borderFactory;
+
+            var triggerHover = new Trigger { Property = Button.IsMouseOverProperty, Value = true };
+            triggerHover.Setters.Add(new Setter(Button.BackgroundProperty, new SolidColorBrush(Color.FromRgb(45, 45, 48)), "border"));
+            triggerHover.Setters.Add(new Setter(Button.ForegroundProperty, Brushes.White));
+            template.Triggers.Add(triggerHover);
+
+            btn.Template = template;
+            btn.Click += onClick;
+            return btn;
+        }
+
+        private void ShowFileContextMenu(FrameworkElement target)
+        {
+            if (target == null) return;
+
+            var cm = new ContextMenu
+            {
+                Background = new SolidColorBrush(Color.FromRgb(28, 28, 28)),
+                BorderBrush = new SolidColorBrush(Color.FromRgb(60, 60, 60)),
+                BorderThickness = new Thickness(1),
+                HasDropShadow = true
+            };
+            System.Windows.Shell.WindowChrome.SetIsHitTestVisibleInChrome(cm, true);
+
+            var itemExportAll = new MenuItem { Header = "📦 Exportar Todo (.en)...", Foreground = Brushes.White, FontSize = 12 };
             itemExportAll.Click += (s, e) => ExportAllEnPackage();
-            menuFile.Items.Add(itemExportAll);
+            cm.Items.Add(itemExportAll);
 
-            var itemExportActive = new MenuItem { Header = "📁 Exportar Proyecto Activo (.en)...", Foreground = Brushes.White };
+            var itemExportActive = new MenuItem { Header = "📁 Exportar Proyecto Activo (.en)...", Foreground = Brushes.White, FontSize = 12 };
             itemExportActive.Click += (s, e) => ExportActiveProjectEnPackage();
-            menuFile.Items.Add(itemExportActive);
+            cm.Items.Add(itemExportActive);
 
-            var itemImport = new MenuItem { Header = "📥 Importar Archivo (.en)...", Foreground = Brushes.White };
+            var itemImport = new MenuItem { Header = "📥 Importar Archivo (.en)...", Foreground = Brushes.White, FontSize = 12 };
             itemImport.Click += (s, e) => ImportEnPackage();
-            menuFile.Items.Add(itemImport);
+            cm.Items.Add(itemImport);
 
-            menuFile.Items.Add(new Separator());
+            cm.Items.Add(new Separator());
 
-            var itemSave = new MenuItem { Header = "💾 Guardar Base de Datos", Foreground = Brushes.White };
+            var itemSave = new MenuItem { Header = "💾 Guardar Base de Datos", Foreground = Brushes.White, FontSize = 12 };
             itemSave.Click += (s, e) =>
             {
                 Storage.Save(db);
                 MessageBox.Show("Base de datos guardada correctamente.", "Guardado", MessageBoxButton.OK, MessageBoxImage.Information);
             };
-            menuFile.Items.Add(itemSave);
+            cm.Items.Add(itemSave);
 
-            menuFile.Items.Add(new Separator());
+            cm.Items.Add(new Separator());
 
-            var itemExit = new MenuItem { Header = "❌ Salir", Foreground = Brushes.White };
+            var itemExit = new MenuItem { Header = "❌ Salir", Foreground = Brushes.White, FontSize = 12 };
             itemExit.Click += (s, e) => Application.Current.Shutdown();
-            menuFile.Items.Add(itemExit);
+            cm.Items.Add(itemExit);
 
-            menuBar.Items.Add(menuFile);
+            cm.PlacementTarget = target;
+            cm.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
+            cm.IsOpen = true;
+        }
 
-            // 2. Editar
-            var menuEdit = new MenuItem { Header = "_Editar", Foreground = Brushes.White };
-            var itemNewProj = new MenuItem { Header = "➕ Nuevo Proyecto...", Foreground = Brushes.White };
+        private void ShowEditContextMenu(FrameworkElement target)
+        {
+            if (target == null) return;
+
+            var cm = new ContextMenu
+            {
+                Background = new SolidColorBrush(Color.FromRgb(28, 28, 28)),
+                BorderBrush = new SolidColorBrush(Color.FromRgb(60, 60, 60)),
+                BorderThickness = new Thickness(1),
+                HasDropShadow = true
+            };
+            System.Windows.Shell.WindowChrome.SetIsHitTestVisibleInChrome(cm, true);
+
+            var itemNewProj = new MenuItem { Header = "➕ Nuevo Proyecto...", Foreground = Brushes.White, FontSize = 12 };
             itemNewProj.Click += (s, e) => ShowAddProjectDialog();
-            menuEdit.Items.Add(itemNewProj);
+            cm.Items.Add(itemNewProj);
 
-            var itemNewTask = new MenuItem { Header = "📝 Nueva Tarea...", Foreground = Brushes.White };
+            var itemNewTask = new MenuItem { Header = "📝 Nueva Tarea...", Foreground = Brushes.White, FontSize = 12 };
             itemNewTask.Click += (s, e) => ShowTaskDialog(null);
-            menuEdit.Items.Add(itemNewTask);
+            cm.Items.Add(itemNewTask);
 
-            menuBar.Items.Add(menuEdit);
+            cm.PlacementTarget = target;
+            cm.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
+            cm.IsOpen = true;
+        }
 
-            // 3. Ver
-            var menuView = new MenuItem { Header = "_Ver", Foreground = Brushes.White };
-            var itemKanban = new MenuItem { Header = "📊 Vista Kanban (Default)", IsChecked = true, Foreground = Brushes.White };
-            menuView.Items.Add(itemKanban);
+        private void ShowViewContextMenu(FrameworkElement target)
+        {
+            if (target == null) return;
 
-            var itemToggleSidebar = new MenuItem { Header = "👁️ Alternar Barra Lateral", Foreground = Brushes.White };
+            var cm = new ContextMenu
+            {
+                Background = new SolidColorBrush(Color.FromRgb(28, 28, 28)),
+                BorderBrush = new SolidColorBrush(Color.FromRgb(60, 60, 60)),
+                BorderThickness = new Thickness(1),
+                HasDropShadow = true
+            };
+            System.Windows.Shell.WindowChrome.SetIsHitTestVisibleInChrome(cm, true);
+
+            var itemKanban = new MenuItem { Header = "📊 Vista Kanban (Default)", IsChecked = true, Foreground = Brushes.White, FontSize = 12 };
+            cm.Items.Add(itemKanban);
+
+            var itemToggleSidebar = new MenuItem { Header = "👁️ Alternar Barra Lateral", Foreground = Brushes.White, FontSize = 12 };
             itemToggleSidebar.Click += (s, e) => ToggleSidebar();
-            menuView.Items.Add(itemToggleSidebar);
+            cm.Items.Add(itemToggleSidebar);
 
-            menuBar.Items.Add(menuView);
+            cm.PlacementTarget = target;
+            cm.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
+            cm.IsOpen = true;
+        }
 
-            // 4. Herramientas
-            var menuTools = new MenuItem { Header = "_Herramientas", Foreground = Brushes.White };
-            var itemRawJson = new MenuItem { Header = "⚙️ Exportar Backup RAW JSON...", Foreground = Brushes.White };
+        private void ShowToolsContextMenu(FrameworkElement target)
+        {
+            if (target == null) return;
+
+            var cm = new ContextMenu
+            {
+                Background = new SolidColorBrush(Color.FromRgb(28, 28, 28)),
+                BorderBrush = new SolidColorBrush(Color.FromRgb(60, 60, 60)),
+                BorderThickness = new Thickness(1),
+                HasDropShadow = true
+            };
+            System.Windows.Shell.WindowChrome.SetIsHitTestVisibleInChrome(cm, true);
+
+            var itemRawJson = new MenuItem { Header = "⚙️ Exportar Backup RAW JSON...", Foreground = Brushes.White, FontSize = 12 };
             itemRawJson.Click += (s, e) => ExportRawJsonBackup();
-            menuTools.Items.Add(itemRawJson);
+            cm.Items.Add(itemRawJson);
 
-            menuBar.Items.Add(menuTools);
+            cm.PlacementTarget = target;
+            cm.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
+            cm.IsOpen = true;
+        }
 
-            // 5. Ayuda
-            var menuHelp = new MenuItem { Header = "A_yuda", Foreground = Brushes.White };
-            var itemShortcuts = new MenuItem { Header = "⌨️ Atajos de Teclado", Foreground = Brushes.White };
+        private void ShowHelpContextMenu(FrameworkElement target)
+        {
+            if (target == null) return;
+
+            var cm = new ContextMenu
+            {
+                Background = new SolidColorBrush(Color.FromRgb(28, 28, 28)),
+                BorderBrush = new SolidColorBrush(Color.FromRgb(60, 60, 60)),
+                BorderThickness = new Thickness(1),
+                HasDropShadow = true
+            };
+            System.Windows.Shell.WindowChrome.SetIsHitTestVisibleInChrome(cm, true);
+
+            var itemShortcuts = new MenuItem { Header = "⌨️ Atajos de Teclado", Foreground = Brushes.White, FontSize = 12 };
             itemShortcuts.Click += (s, e) => ShowShortcutsDialog();
-            menuHelp.Items.Add(itemShortcuts);
+            cm.Items.Add(itemShortcuts);
 
-            var itemAbout = new MenuItem { Header = "ℹ️ Acerca de Etern-Notes", Foreground = Brushes.White };
+            var itemAbout = new MenuItem { Header = "ℹ️ Acerca de Etern-Notes", Foreground = Brushes.White, FontSize = 12 };
             itemAbout.Click += (s, e) => ShowAboutDialog();
-            menuHelp.Items.Add(itemAbout);
+            cm.Items.Add(itemAbout);
 
-            menuBar.Items.Add(menuHelp);
-
-            return menuBar;
+            cm.PlacementTarget = target;
+            cm.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
+            cm.IsOpen = true;
         }
 
         private void ExportAllEnPackage()
