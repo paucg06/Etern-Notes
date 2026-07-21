@@ -285,5 +285,90 @@ namespace EternNotes
             Storage.Save(db);
             RefreshKanban();
         }
+
+        private async void ExportAll_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = new SaveFileDialog
+            {
+                Title = "Exportar Todo (*.en)",
+                DefaultExtension = "en",
+                InitialFileName = $"EternNotes_Full_Backup_{DateTime.Now:yyyyMMdd_HHmmss}.en"
+            };
+            dlg.Filters.Add(new FileDialogFilter { Name = "Etern Notes Package", Extensions = new List<string> { "en" } });
+
+            var result = await dlg.ShowAsync(this);
+            if (!string.IsNullOrEmpty(result))
+            {
+                try
+                {
+                    EternPackageHelper.ExportToEnFile(result, db.Projects, db.Tasks);
+                }
+                catch (Exception) { }
+            }
+        }
+
+        private async void ExportActive_Click(object sender, RoutedEventArgs e)
+        {
+            if (activeProject == null) return;
+            var dlg = new SaveFileDialog
+            {
+                Title = $"Exportar {activeProject.Name} (*.en)",
+                DefaultExtension = "en",
+                InitialFileName = $"{activeProject.Name.Replace(" ", "_")}.en"
+            };
+            dlg.Filters.Add(new FileDialogFilter { Name = "Etern Notes Package", Extensions = new List<string> { "en" } });
+
+            var result = await dlg.ShowAsync(this);
+            if (!string.IsNullOrEmpty(result))
+            {
+                try
+                {
+                    var activeTasks = db.Tasks.Where(t => t.ProjectId == activeProject.Id).ToList();
+                    EternPackageHelper.ExportToEnFile(result, new List<Project> { activeProject }, activeTasks);
+                }
+                catch (Exception) { }
+            }
+        }
+
+        private async void ImportEn_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = new OpenFileDialog
+            {
+                Title = "Importar Archivo (*.en)",
+                AllowMultiple = false
+            };
+            dlg.Filters.Add(new FileDialogFilter { Name = "Etern Notes Package", Extensions = new List<string> { "en", "json" } });
+
+            var results = await dlg.ShowAsync(this);
+            if (results != null && results.Length > 0)
+            {
+                try
+                {
+                    var package = EternPackageHelper.ReadEnFile(results[0]);
+                    foreach (var importedProj in package.Projects)
+                    {
+                        var importedTasks = package.Tasks.Where(t => t.ProjectId == importedProj.Id).ToList();
+                        db.Projects.Add(importedProj);
+                        foreach (var task in importedTasks)
+                        {
+                            db.Tasks.Add(task);
+                        }
+                        activeProject = importedProj;
+                    }
+                    Storage.Save(db);
+                    RefreshUI();
+                }
+                catch (Exception) { }
+            }
+        }
+
+        private void Save_Click(object sender, RoutedEventArgs e)
+        {
+            Storage.Save(db);
+        }
+
+        private void About_Click(object sender, RoutedEventArgs e)
+        {
+        }
     }
 }

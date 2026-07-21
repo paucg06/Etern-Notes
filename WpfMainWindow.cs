@@ -379,10 +379,11 @@ namespace EternNotes
             };
             this.Content = rootBorder;
 
-            // Main Grid split: Title Bar vs. Content
+            // Main Grid split: Title Bar, Menu Bar vs. Content
             mainGrid = new Grid();
-            mainGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(42) }); // Title bar
-            mainGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); // Content
+            mainGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(36) }); // Title bar (Row 0)
+            mainGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(28) }); // Menu bar (Row 1)
+            mainGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); // Content (Row 2)
             rootBorder.Child = mainGrid;
 
             // Setup WindowChrome for native border resizing and title bar dragging
@@ -474,13 +475,18 @@ namespace EternNotes
             var btnClose = CreateTitleButton(WpfVectorIcons.Close, "Cerrar", (s, e) => { Storage.Save(db); this.Close(); }, isCloseButton: true);
             controlsPanel.Children.Add(btnClose);
 
-            // 2. Content Layout Grid
+            // 2. Menu Bar (Row 1)
+            var menuBar = CreateMenuBar();
+            mainGrid.Children.Add(menuBar);
+            Grid.SetRow(menuBar, 1);
+
+            // 3. Content Layout Grid (Row 2)
             contentGrid = new Grid();
             contentGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(240), MinWidth = 180, MaxWidth = 400 }); // Sidebar
             contentGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(4) }); // Splitter
             contentGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) }); // Workspace
             mainGrid.Children.Add(contentGrid);
-            Grid.SetRow(contentGrid, 1);
+            Grid.SetRow(contentGrid, 2);
 
             // Sidebar Column 0 (Border container to prevent bottom-left corner bleed)
             var sidebarGrid = new Border
@@ -2649,6 +2655,392 @@ namespace EternNotes
             });
 
             return result;
+        }
+
+        public enum ImportConflictOption
+        {
+            Replace,
+            CreateCopy,
+            Cancel
+        }
+
+        private ImportConflictOption ShowImportConflictDialog(string projectName)
+        {
+            ImportConflictOption result = ImportConflictOption.Cancel;
+
+            var dlg = new Window
+            {
+                Title = "Conflicto de Proyecto",
+                Width = 480,
+                Height = 220,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Owner = this,
+                WindowStyle = WindowStyle.None,
+                AllowsTransparency = false,
+                Background = new SolidColorBrush(Color.FromRgb(26, 26, 26)),
+                ResizeMode = ResizeMode.NoResize
+            };
+
+            var root = new Border
+            {
+                BorderBrush = new SolidColorBrush(Color.FromRgb(0, 122, 204)),
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(8),
+                Padding = new Thickness(20)
+            };
+            dlg.Content = root;
+
+            var grid = new Grid();
+            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); // Title
+            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); // Desc
+            grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); // Buttons
+
+            var txtTitle = new TextBlock
+            {
+                Text = "⚠️ Conflicto de Importación",
+                FontFamily = new FontFamily("Segoe UI"),
+                FontSize = 16,
+                FontWeight = FontWeights.Bold,
+                Foreground = Brushes.White,
+                Margin = new Thickness(0, 0, 0, 10)
+            };
+            grid.Children.Add(txtTitle);
+            Grid.SetRow(txtTitle, 0);
+
+            var txtDesc = new TextBlock
+            {
+                Text = string.Format("El proyecto '{0}' ya existe en tu espacio de trabajo.\n¿Cómo deseas proceder?", projectName),
+                FontFamily = new FontFamily("Segoe UI"),
+                FontSize = 13,
+                Foreground = new SolidColorBrush(Color.FromRgb(200, 200, 200)),
+                TextWrapping = TextWrapping.Wrap,
+                Margin = new Thickness(0, 0, 0, 20)
+            };
+            grid.Children.Add(txtDesc);
+            Grid.SetRow(txtDesc, 1);
+
+            var btnPanel = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                HorizontalAlignment = HorizontalAlignment.Right,
+                VerticalAlignment = VerticalAlignment.Bottom
+            };
+
+            var btnReplace = CreateFlatButton("Reemplazar", new SolidColorBrush(Color.FromRgb(180, 40, 40)), new SolidColorBrush(Color.FromRgb(210, 50, 50)), Brushes.White);
+            btnReplace.Margin = new Thickness(0, 0, 10, 0);
+            btnReplace.Click += (s, e) => { result = ImportConflictOption.Replace; dlg.Close(); };
+
+            var btnCopy = CreateFlatButton("Crear Copia", new SolidColorBrush(Color.FromRgb(0, 122, 204)), new SolidColorBrush(Color.FromRgb(28, 151, 234)), Brushes.White);
+            btnCopy.Margin = new Thickness(0, 0, 10, 0);
+            btnCopy.Click += (s, e) => { result = ImportConflictOption.CreateCopy; dlg.Close(); };
+
+            var btnCancel = CreateFlatButton("Cancelar", new SolidColorBrush(Color.FromRgb(60, 60, 60)), new SolidColorBrush(Color.FromRgb(80, 80, 80)), Brushes.White);
+            btnCancel.Click += (s, e) => { result = ImportConflictOption.Cancel; dlg.Close(); };
+
+            btnPanel.Children.Add(btnReplace);
+            btnPanel.Children.Add(btnCopy);
+            btnPanel.Children.Add(btnCancel);
+
+            grid.Children.Add(btnPanel);
+            Grid.SetRow(btnPanel, 2);
+
+            dlg.ShowDialog();
+            return result;
+        }
+
+        private Menu CreateMenuBar()
+        {
+            var menuBar = new Menu
+            {
+                Background = new SolidColorBrush(Color.FromRgb(24, 24, 24)),
+                Foreground = Brushes.White,
+                Padding = new Thickness(10, 2, 10, 2)
+            };
+
+            // 1. Archivo
+            var menuFile = new MenuItem { Header = "_Archivo", Foreground = Brushes.White };
+
+            var itemExportAll = new MenuItem { Header = "📦 Exportar Todo (.en)...", Foreground = Brushes.White };
+            itemExportAll.Click += (s, e) => ExportAllEnPackage();
+            menuFile.Items.Add(itemExportAll);
+
+            var itemExportActive = new MenuItem { Header = "📁 Exportar Proyecto Activo (.en)...", Foreground = Brushes.White };
+            itemExportActive.Click += (s, e) => ExportActiveProjectEnPackage();
+            menuFile.Items.Add(itemExportActive);
+
+            var itemImport = new MenuItem { Header = "📥 Importar Archivo (.en)...", Foreground = Brushes.White };
+            itemImport.Click += (s, e) => ImportEnPackage();
+            menuFile.Items.Add(itemImport);
+
+            menuFile.Items.Add(new Separator());
+
+            var itemSave = new MenuItem { Header = "💾 Guardar Base de Datos", Foreground = Brushes.White };
+            itemSave.Click += (s, e) =>
+            {
+                Storage.Save(db);
+                MessageBox.Show("Base de datos guardada correctamente.", "Guardado", MessageBoxButton.OK, MessageBoxImage.Information);
+            };
+            menuFile.Items.Add(itemSave);
+
+            menuFile.Items.Add(new Separator());
+
+            var itemExit = new MenuItem { Header = "❌ Salir", Foreground = Brushes.White };
+            itemExit.Click += (s, e) => Application.Current.Shutdown();
+            menuFile.Items.Add(itemExit);
+
+            menuBar.Items.Add(menuFile);
+
+            // 2. Editar
+            var menuEdit = new MenuItem { Header = "_Editar", Foreground = Brushes.White };
+            var itemNewProj = new MenuItem { Header = "➕ Nuevo Proyecto...", Foreground = Brushes.White };
+            itemNewProj.Click += (s, e) => ShowAddProjectDialog();
+            menuEdit.Items.Add(itemNewProj);
+
+            var itemNewTask = new MenuItem { Header = "📝 Nueva Tarea...", Foreground = Brushes.White };
+            itemNewTask.Click += (s, e) => ShowTaskDialog(null);
+            menuEdit.Items.Add(itemNewTask);
+
+            menuBar.Items.Add(menuEdit);
+
+            // 3. Ver
+            var menuView = new MenuItem { Header = "_Ver", Foreground = Brushes.White };
+            var itemKanban = new MenuItem { Header = "📊 Vista Kanban (Default)", IsChecked = true, Foreground = Brushes.White };
+            menuView.Items.Add(itemKanban);
+
+            var itemToggleSidebar = new MenuItem { Header = "👁️ Alternar Barra Lateral", Foreground = Brushes.White };
+            itemToggleSidebar.Click += (s, e) => ToggleSidebar();
+            menuView.Items.Add(itemToggleSidebar);
+
+            menuBar.Items.Add(menuView);
+
+            // 4. Herramientas
+            var menuTools = new MenuItem { Header = "_Herramientas", Foreground = Brushes.White };
+            var itemRawJson = new MenuItem { Header = "⚙️ Exportar Backup RAW JSON...", Foreground = Brushes.White };
+            itemRawJson.Click += (s, e) => ExportRawJsonBackup();
+            menuTools.Items.Add(itemRawJson);
+
+            menuBar.Items.Add(menuTools);
+
+            // 5. Ayuda
+            var menuHelp = new MenuItem { Header = "A_yuda", Foreground = Brushes.White };
+            var itemShortcuts = new MenuItem { Header = "⌨️ Atajos de Teclado", Foreground = Brushes.White };
+            itemShortcuts.Click += (s, e) => ShowShortcutsDialog();
+            menuHelp.Items.Add(itemShortcuts);
+
+            var itemAbout = new MenuItem { Header = "ℹ️ Acerca de Etern-Notes", Foreground = Brushes.White };
+            itemAbout.Click += (s, e) => ShowAboutDialog();
+            menuHelp.Items.Add(itemAbout);
+
+            menuBar.Items.Add(menuHelp);
+
+            return menuBar;
+        }
+
+        private void ExportAllEnPackage()
+        {
+            var sfd = new Microsoft.Win32.SaveFileDialog
+            {
+                Filter = "Etern Notes Package (*.en)|*.en",
+                DefaultExt = ".en",
+                FileName = string.Format("EternNotes_Full_Backup_{0}.en", DateTime.Now.ToString("yyyyMMdd_HHmmss"))
+            };
+
+            if (sfd.ShowDialog() == true)
+            {
+                try
+                {
+                    EternPackageHelper.ExportToEnFile(sfd.FileName, db.Projects, db.Tasks);
+                    MessageBox.Show(
+                        string.Format("¡Exportación completada exitosamente!\n\nSe han guardado todos los proyectos y tareas en:\n{0}", sfd.FileName),
+                        "Exportación Exitosa",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information
+                    );
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error al exportar paquete .en: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        private void ExportActiveProjectEnPackage()
+        {
+            if (activeProject == null)
+            {
+                MessageBox.Show("No hay ningún proyecto activo para exportar.", "Aviso", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var activeTasks = db.Tasks.Where(t => t.ProjectId == activeProject.Id).ToList();
+            var sfd = new Microsoft.Win32.SaveFileDialog
+            {
+                Filter = "Etern Notes Package (*.en)|*.en",
+                DefaultExt = ".en",
+                FileName = string.Format("{0}.en", activeProject.Name.Replace(" ", "_"))
+            };
+
+            if (sfd.ShowDialog() == true)
+            {
+                try
+                {
+                    EternPackageHelper.ExportToEnFile(sfd.FileName, new List<Project> { activeProject }, activeTasks);
+                    MessageBox.Show(
+                        string.Format("¡Proyecto '{0}' exportado exitosamente!\n\nArchivo guardado en:\n{1}", activeProject.Name, sfd.FileName),
+                        "Exportación Exitosa",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information
+                    );
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error al exportar paquete .en: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        private void ImportEnPackage()
+        {
+            var ofd = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "Etern Notes Package (*.en)|*.en;*.json",
+                DefaultExt = ".en"
+            };
+
+            if (ofd.ShowDialog() == true)
+            {
+                try
+                {
+                    var package = EternPackageHelper.ReadEnFile(ofd.FileName);
+                    if (package.Projects == null || package.Projects.Count == 0)
+                    {
+                        MessageBox.Show("El archivo .en no contiene ningún proyecto válido.", "Aviso", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
+
+                    int importedCount = 0;
+                    foreach (var importedProj in package.Projects)
+                    {
+                        var importedTasks = package.Tasks.Where(t => t.ProjectId == importedProj.Id).ToList();
+
+                        var existingProj = db.Projects.FirstOrDefault(p => p.Name.Equals(importedProj.Name, StringComparison.OrdinalIgnoreCase));
+                        if (existingProj != null)
+                        {
+                            var conflictResult = ShowImportConflictDialog(importedProj.Name);
+                            if (conflictResult == ImportConflictOption.Replace)
+                            {
+                                db.Projects.Remove(existingProj);
+                                db.Tasks.RemoveAll(t => t.ProjectId == existingProj.Id);
+
+                                db.Projects.Add(importedProj);
+                                foreach (var task in importedTasks)
+                                {
+                                    db.Tasks.Add(task);
+                                }
+                                activeProject = importedProj;
+                                importedCount++;
+                            }
+                            else if (conflictResult == ImportConflictOption.CreateCopy)
+                            {
+                                string newId = Guid.NewGuid().ToString();
+                                string oldId = importedProj.Id;
+
+                                importedProj.Id = newId;
+                                importedProj.Name = importedProj.Name + " (Copia)";
+
+                                foreach (var task in importedTasks)
+                                {
+                                    task.Id = Guid.NewGuid().ToString();
+                                    task.ProjectId = newId;
+                                    db.Tasks.Add(task);
+                                }
+
+                                db.Projects.Add(importedProj);
+                                activeProject = importedProj;
+                                importedCount++;
+                            }
+                            // If Cancel, skip
+                        }
+                        else
+                        {
+                            db.Projects.Add(importedProj);
+                            foreach (var task in importedTasks)
+                            {
+                                db.Tasks.Add(task);
+                            }
+                            activeProject = importedProj;
+                            importedCount++;
+                        }
+                    }
+
+                    if (importedCount > 0)
+                    {
+                        Storage.Save(db);
+                        RefreshProjects();
+                        RefreshWorkspace();
+                        MessageBox.Show(string.Format("¡Se importaron {0} proyecto(s) correctamente!", importedCount), "Importación Exitosa", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error al importar el archivo .en: " + ex.Message, "Error de Importación", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        private void ExportRawJsonBackup()
+        {
+            var sfd = new Microsoft.Win32.SaveFileDialog
+            {
+                Filter = "JSON Files (*.json)|*.json",
+                DefaultExt = ".json",
+                FileName = string.Format("EternNotes_RawBackup_{0}.json", DateTime.Now.ToString("yyyyMMdd_HHmmss"))
+            };
+
+            if (sfd.ShowDialog() == true)
+            {
+                try
+                {
+                    Storage.Save(db);
+                    string rawJson = File.ReadAllText(System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "EternNotes", "data.json"));
+                    File.WriteAllText(sfd.FileName, rawJson);
+                    MessageBox.Show("Copia RAW JSON exportada en: " + sfd.FileName, "Backup Guardado", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error al exportar JSON: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        private void ShowShortcutsDialog()
+        {
+            MessageBox.Show(
+                "⌨️ ATAJOS DE TECLADO EN ETERN-NOTES:\n\n" +
+                "• F11: Alternar Pantalla Completa\n" +
+                "• Ctrl + S: Guardar Base de Datos\n" +
+                "• Ctrl + E: Exportar Paquete .en\n" +
+                "• Ctrl + I: Importar Paquete .en\n" +
+                "• Esc: Cerrar Cuadros de Diálogo",
+                "Atajos de Teclado",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information
+            );
+        }
+
+        private void ShowAboutDialog()
+        {
+            MessageBox.Show(
+                "🚀 Etern-Notes v1.2 (Native Cross-Platform Workspace)\n\n" +
+                "Desarrollado para la gestión eficiente de proyectos y tareas.\n" +
+                "• Formato de Paquetes: .en (Etern Notes Package)\n" +
+                "• Licencia: MIT\n" +
+                "• Desarrollador: paucg06\n\n" +
+                "© 2026 Etern Studio.",
+                "Acerca de Etern-Notes",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information
+            );
         }
     }
 

@@ -114,6 +114,64 @@ namespace EternNotes
         }
     }
 
+    [DataContract]
+    public class EternPackage
+    {
+        [DataMember]
+        public string FormatVersion { get; set; }
+
+        [DataMember]
+        public string ExportedAt { get; set; }
+
+        [DataMember]
+        public string AppName { get; set; }
+
+        [DataMember]
+        public List<Project> Projects { get; set; }
+
+        [DataMember]
+        public List<DeveloperTask> Tasks { get; set; }
+
+        public EternPackage()
+        {
+            FormatVersion = "1.0";
+            ExportedAt = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            AppName = "EternNotes";
+            Projects = new List<Project>();
+            Tasks = new List<DeveloperTask>();
+        }
+    }
+
+    public static class EternPackageHelper
+    {
+        public static void ExportToEnFile(string filePath, List<Project> projectsToExport, List<DeveloperTask> tasksToExport)
+        {
+            var package = new EternPackage
+            {
+                Projects = projectsToExport ?? new List<Project>(),
+                Tasks = tasksToExport ?? new List<DeveloperTask>()
+            };
+
+            using (var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write))
+            {
+                var serializer = new DataContractJsonSerializer(typeof(EternPackage));
+                serializer.WriteObject(fs, package);
+            }
+        }
+
+        public static EternPackage ReadEnFile(string filePath)
+        {
+            using (var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+            {
+                var serializer = new DataContractJsonSerializer(typeof(EternPackage));
+                var package = (EternPackage)serializer.ReadObject(fs);
+                if (package.Projects == null) package.Projects = new List<Project>();
+                if (package.Tasks == null) package.Tasks = new List<DeveloperTask>();
+                return package;
+            }
+        }
+    }
+
     public static class Storage
     {
         private static readonly string FolderPath = Path.Combine(

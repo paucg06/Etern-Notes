@@ -6,9 +6,9 @@
         WindowStartupLocation="CenterScreen"
         Background="#121212">
 
-    <Grid RowDefinitions="Auto,*">
+    <Grid RowDefinitions="Auto,Auto,*">
         <!-- Title Bar -->
-        <Border Grid.Row="0" Background="#1A1A1A" Height="42" Padding="15,0">
+        <Border Grid.Row="0" Background="#1A1A1A" Height="36" Padding="15,0">
             <Grid ColumnDefinitions="Auto,*,Auto">
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Spacing="10">
                     <Path Data="M21,6H3A2,2 0 0,0 1,8V16A2,2 0 0,0 3,18H21A2,2 0 0,0 23,16V8A2,2 0 0,0 21,6M6,15H5V13H3V12H5V10H6V12H8V13H6V15M15.5,12A1.5,1.5 0 0,1 14,10.5A1.5,1.5 0 0,1 15.5,9A1.5,1.5 0 0,1 17,10.5A1.5,1.5 0 0,1 15.5,12M18.5,15A1.5,1.5 0 0,1 17,13.5A1.5,1.5 0 0,1 18.5,12A1.5,1.5 0 0,1 20,13.5A1.5,1.5 0 0,1 18.5,15Z"
@@ -19,8 +19,29 @@
             </Grid>
         </Border>
 
+        <!-- Menu Bar -->
+        <Menu Grid.Row="1" Background="#181818" Foreground="White">
+            <MenuItem Header="_Archivo">
+                <MenuItem Header="📦 Exportar Todo (.en)..." Click="ExportAll_Click" />
+                <MenuItem Header="📁 Exportar Proyecto Activo (.en)..." Click="ExportActive_Click" />
+                <MenuItem Header="📥 Importar Archivo (.en)..." Click="ImportEn_Click" />
+                <Separator/>
+                <MenuItem Header="💾 Guardar Base de Datos" Click="Save_Click" />
+            </MenuItem>
+            <MenuItem Header="_Editar">
+                <MenuItem Header="➕ Nuevo Proyecto..." Click="BtnNewProject_Click" />
+                <MenuItem Header="📝 Nueva Tarea..." Click="BtnNewTask_Click" />
+            </MenuItem>
+            <MenuItem Header="_Ver">
+                <MenuItem Header="📊 Vista Kanban (Default)" IsChecked="True" />
+            </MenuItem>
+            <MenuItem Header="A_yuda">
+                <MenuItem Header="ℹ️ Acerca de Etern-Notes" Click="About_Click" />
+            </MenuItem>
+        </Menu>
+
         <!-- Main Workspace -->
-        <Grid Grid.Row="1" ColumnDefinitions="240,*">
+        <Grid Grid.Row="2" ColumnDefinitions="240,*">
             <!-- Sidebar -->
             <Border Grid.Column="0" Background="#1A1A1A" BorderBrush="#303030" BorderThickness="0,0,1,0" Padding="15">
                 <Grid RowDefinitions="Auto,*,Auto">
