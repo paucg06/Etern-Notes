@@ -5,8 +5,8 @@ $outputExe = "C:\Users\paucr\.gemini\antigravity\scratch\Etern-Notes\EternNotes.
 
 $sourceFiles = @(
     "C:\Users\paucr\.gemini\antigravity\scratch\Etern-Notes\Models.cs",
-    "C:\Users\paucr\.gemini\antigravity\scratch\Etern-Notes\VectorIcons.cs",
-    "C:\Users\paucr\.gemini\antigravity\scratch\Etern-Notes\MainWindow.cs"
+    "C:\Users\paucr\.gemini\antigravity\scratch\Etern-Notes\WpfVectorIcons.cs",
+    "C:\Users\paucr\.gemini\antigravity\scratch\Etern-Notes\WpfMainWindow.cs"
 )
 
 # WPF Assembly Paths

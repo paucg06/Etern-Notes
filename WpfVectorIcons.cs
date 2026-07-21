@@ -1,10 +1,11 @@
 using System;
-using Avalonia.Media;
-using Avalonia.Controls.Shapes;
+using System.Windows;
+using System.Windows.Media;
+using System.Windows.Shapes;
 
 namespace EternNotes
 {
-    public static class VectorIcons
+    public static class WpfVectorIcons
     {
         public const string Calendar = "M19,4H18V2H16V4H8V2H6V4H5C3.89,4 3,4.9 3,6V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V6A2,2 0 0,0 19,4M19,19H5V9H19V19M5,7V6H19V7H5Z";
         public const string Link = "M10.59,13.41C11.37,14.19 12.63,14.19 13.41,13.41L20,6.83C21.11,5.72 21.11,3.93 20,2.82C18.89,1.71 17.1,1.71 16,2.82L9.41,9.41C8.63,10.19 8.63,11.45 9.41,12.23L10.59,13.41M13.41,10.59L12.23,9.41C11.45,8.63 10.19,8.63 9.41,9.41L2.82,16C1.71,17.1 1.71,18.89 2.82,20C3.93,21.11 5.72,21.11 6.83,20L13.41,13.41C14.19,12.63 14.19,11.37 13.41,10.59Z";
@@ -22,9 +23,9 @@ namespace EternNotes
         public const string Video = "M17,10.5V7A1,1 0 0,0 16,6H4A1,1 0 0,0 3,7V17A1,1 0 0,0 4,18H16A1,1 0 0,0 17,17V13.5L21,17.5V6.5L17,10.5Z";
         public const string SidebarToggle = "M4,4 H20 V20 H4 Z M6,6 H9 V18 H6 Z M11,6 H18 V18 H11 Z";
 
-        public static Path GetIcon(string geometryData, IBrush brush, double size = 16)
+        public static System.Windows.Shapes.Path GetIcon(string geometryData, Brush brush, double size = 16)
         {
-            return new Path
+            return new System.Windows.Shapes.Path
             {
                 Data = Geometry.Parse(geometryData),
                 Fill = brush,

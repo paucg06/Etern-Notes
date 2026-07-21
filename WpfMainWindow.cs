@@ -11,7 +11,7 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using System.Diagnostics;
 
-namespace DevPlanner
+namespace EternNotes
 {
     public class MainWindow : Window
     {
@@ -394,7 +394,7 @@ namespace DevPlanner
 
             // Logo & Title
             var logoPanel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(15, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
-            var logoIcon = VectorIcons.GetIcon(VectorIcons.Gamepad, new SolidColorBrush(Color.FromRgb(0, 122, 204)), 18);
+            var logoIcon = WpfVectorIcons.GetIcon(WpfVectorIcons.Gamepad, new SolidColorBrush(Color.FromRgb(0, 122, 204)), 18);
             logoPanel.Children.Add(logoIcon);
 
             var titleText = new TextBlock
@@ -415,23 +415,23 @@ namespace DevPlanner
             titleBarGrid.Children.Add(controlsPanel);
 
             // Minimize button
-            var btnMin = CreateTitleButton(VectorIcons.Minimize, "Minimizar", (s, e) => WindowState = WindowState.Minimized);
+            var btnMin = CreateTitleButton(WpfVectorIcons.Minimize, "Minimizar", (s, e) => WindowState = WindowState.Minimized);
             controlsPanel.Children.Add(btnMin);
 
             // Maximize / Restore button
             Button btnMax = null;
-            btnMax = CreateTitleButton(VectorIcons.Maximize, "Maximizar", (s, e) =>
+            btnMax = CreateTitleButton(WpfVectorIcons.Maximize, "Maximizar", (s, e) =>
             {
                 if (this.WindowState == WindowState.Maximized)
                 {
                     this.WindowState = WindowState.Normal;
-                    ((System.Windows.Shapes.Path)btnMax.Content).Data = Geometry.Parse(VectorIcons.Maximize);
+                    ((System.Windows.Shapes.Path)btnMax.Content).Data = Geometry.Parse(WpfVectorIcons.Maximize);
                     btnMax.ToolTip = "Maximizar";
                 }
                 else
                 {
                     this.WindowState = WindowState.Maximized;
-                    ((System.Windows.Shapes.Path)btnMax.Content).Data = Geometry.Parse(VectorIcons.Restore);
+                    ((System.Windows.Shapes.Path)btnMax.Content).Data = Geometry.Parse(WpfVectorIcons.Restore);
                     btnMax.ToolTip = "Restaurar";
                 }
             });
@@ -444,19 +444,19 @@ namespace DevPlanner
                 {
                     if (this.WindowState == WindowState.Maximized)
                     {
-                        ((System.Windows.Shapes.Path)btnMax.Content).Data = Geometry.Parse(VectorIcons.Restore);
+                        ((System.Windows.Shapes.Path)btnMax.Content).Data = Geometry.Parse(WpfVectorIcons.Restore);
                         btnMax.ToolTip = "Restaurar";
                     }
                     else
                     {
-                        ((System.Windows.Shapes.Path)btnMax.Content).Data = Geometry.Parse(VectorIcons.Maximize);
+                        ((System.Windows.Shapes.Path)btnMax.Content).Data = Geometry.Parse(WpfVectorIcons.Maximize);
                         btnMax.ToolTip = "Maximizar";
                     }
                 }
             };
 
             // Close button
-            var btnClose = CreateTitleButton(VectorIcons.Close, "Cerrar", (s, e) => { Storage.Save(db); this.Close(); }, isCloseButton: true);
+            var btnClose = CreateTitleButton(WpfVectorIcons.Close, "Cerrar", (s, e) => { Storage.Save(db); this.Close(); }, isCloseButton: true);
             controlsPanel.Children.Add(btnClose);
 
             // 2. Content Layout Grid
@@ -515,7 +515,7 @@ namespace DevPlanner
                 Cursor = Cursors.Hand,
                 VerticalAlignment = VerticalAlignment.Center
             };
-            var pathCollapse = VectorIcons.GetIcon(VectorIcons.SidebarToggle, TextMuted, 13);
+            var pathCollapse = WpfVectorIcons.GetIcon(WpfVectorIcons.SidebarToggle, TextMuted, 13);
             pathCollapse.HorizontalAlignment = HorizontalAlignment.Center;
             pathCollapse.VerticalAlignment = VerticalAlignment.Center;
             btnCollapseSidebar.Child = pathCollapse;
@@ -615,7 +615,7 @@ namespace DevPlanner
                 VerticalAlignment = VerticalAlignment.Center,
                 Visibility = Visibility.Collapsed
             };
-            var pathToggle = VectorIcons.GetIcon(VectorIcons.SidebarToggle, TextMuted, 16);
+            var pathToggle = WpfVectorIcons.GetIcon(WpfVectorIcons.SidebarToggle, TextMuted, 16);
             pathToggle.HorizontalAlignment = HorizontalAlignment.Center;
             pathToggle.VerticalAlignment = VerticalAlignment.Center;
             btnExpandSidebar.Child = pathToggle;
@@ -629,7 +629,7 @@ namespace DevPlanner
 
             // Project Info Details (Column 1)
             projInfoPanel = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(35, 0, 0, 0) };
-            projectIconPath = VectorIcons.GetIcon(VectorIcons.Folder, TextActive, 28);
+            projectIconPath = WpfVectorIcons.GetIcon(WpfVectorIcons.Folder, TextActive, 28);
             projInfoPanel.Children.Add(projectIconPath);
 
             var projTitles = new StackPanel { Margin = new Thickness(15, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
@@ -952,11 +952,11 @@ namespace DevPlanner
                 btnBorder.Child = itemGrid;
 
                 // Select Icon representation
-                string geometryStr = VectorIcons.Folder;
-                if (proj.IconType == "Gamepad") geometryStr = VectorIcons.Gamepad;
-                else if (proj.IconType == "Video") geometryStr = VectorIcons.Video;
+                string geometryStr = WpfVectorIcons.Folder;
+                if (proj.IconType == "Gamepad") geometryStr = WpfVectorIcons.Gamepad;
+                else if (proj.IconType == "Video") geometryStr = WpfVectorIcons.Video;
 
-                var icon = VectorIcons.GetIcon(geometryStr, isSelected ? TextActive : TextMuted, 14);
+                var icon = WpfVectorIcons.GetIcon(geometryStr, isSelected ? TextActive : TextMuted, 14);
                 icon.HorizontalAlignment = HorizontalAlignment.Left;
                 icon.VerticalAlignment = VerticalAlignment.Center;
                 itemGrid.Children.Add(icon);
@@ -1028,9 +1028,9 @@ namespace DevPlanner
             }
 
             // Bind icon path
-            string iconGeometry = VectorIcons.Folder;
-            if (activeProject.IconType == "Gamepad") iconGeometry = VectorIcons.Gamepad;
-            else if (activeProject.IconType == "Video") iconGeometry = VectorIcons.Video;
+            string iconGeometry = WpfVectorIcons.Folder;
+            if (activeProject.IconType == "Gamepad") iconGeometry = WpfVectorIcons.Gamepad;
+            else if (activeProject.IconType == "Video") iconGeometry = WpfVectorIcons.Video;
             projectIconPath.Data = Geometry.Parse(iconGeometry);
 
             txtProjectName.Text = activeProject.Name;
@@ -1274,7 +1274,7 @@ namespace DevPlanner
                         Margin = new Thickness(0, 0, 8, 0)
                     };
 
-                    var checkSymbol = VectorIcons.GetIcon(VectorIcons.Check, Brushes.White, 7);
+                    var checkSymbol = WpfVectorIcons.GetIcon(WpfVectorIcons.Check, Brushes.White, 7);
                     checkSymbol.VerticalAlignment = VerticalAlignment.Center;
                     checkSymbol.HorizontalAlignment = HorizontalAlignment.Center;
                     checkSymbol.Visibility = sub.Completed ? Visibility.Visible : Visibility.Collapsed;
@@ -1367,7 +1367,7 @@ namespace DevPlanner
             if (!string.IsNullOrEmpty(task.Link))
             {
                 var linkPanel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 8), Cursor = Cursors.Hand };
-                var linkIcon = VectorIcons.GetIcon(VectorIcons.Link, TextMuted, 11);
+                var linkIcon = WpfVectorIcons.GetIcon(WpfVectorIcons.Link, TextMuted, 11);
                 var linkText = new TextBlock
                 {
                     Text = "Document Link →",
@@ -1409,7 +1409,7 @@ namespace DevPlanner
             if (!string.IsNullOrEmpty(task.Assignee))
             {
                 var assigneeStack = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Center };
-                var userIcon = VectorIcons.GetIcon(VectorIcons.User, new SolidColorBrush(Color.FromRgb(227, 179, 65)), 11);
+                var userIcon = WpfVectorIcons.GetIcon(WpfVectorIcons.User, new SolidColorBrush(Color.FromRgb(227, 179, 65)), 11);
                 var txtAssignee = new TextBlock
                 {
                     Text = task.Assignee,
@@ -1430,7 +1430,7 @@ namespace DevPlanner
             
             if (task.Deadline != DateTime.MinValue)
             {
-                var calIcon = VectorIcons.GetIcon(VectorIcons.Calendar, TextMuted, 10.5);
+                var calIcon = WpfVectorIcons.GetIcon(WpfVectorIcons.Calendar, TextMuted, 10.5);
                 var txtDeadline = new TextBlock
                 {
                     Text = task.Deadline.ToString("dd MMM"),
@@ -1469,7 +1469,7 @@ namespace DevPlanner
                 Margin = new Thickness(0, 0, 4, 0),
                 CornerRadius = new CornerRadius(3)
             };
-            btnEdit.Child = VectorIcons.GetIcon(VectorIcons.Edit, TextMuted, 13);
+            btnEdit.Child = WpfVectorIcons.GetIcon(WpfVectorIcons.Edit, TextMuted, 13);
             btnEdit.MouseEnter += (s, e) => { btnEdit.Background = new SolidColorBrush(Color.FromArgb(30, 255, 255, 255)); ((System.Windows.Shapes.Path)btnEdit.Child).Fill = TextActive; };
             btnEdit.MouseLeave += (s, e) => { btnEdit.Background = Brushes.Transparent; ((System.Windows.Shapes.Path)btnEdit.Child).Fill = TextMuted; };
             btnEdit.MouseDown += (s, e) => { e.Handled = true; ShowTaskDialog(task); };
@@ -1483,7 +1483,7 @@ namespace DevPlanner
                 Cursor = Cursors.Hand,
                 CornerRadius = new CornerRadius(3)
             };
-            btnDel.Child = VectorIcons.GetIcon(VectorIcons.Trash, TextMuted, 13);
+            btnDel.Child = WpfVectorIcons.GetIcon(WpfVectorIcons.Trash, TextMuted, 13);
             btnDel.MouseEnter += (s, e) => { btnDel.Background = new SolidColorBrush(Color.FromArgb(30, 255, 255, 255)); ((System.Windows.Shapes.Path)btnDel.Child).Fill = new SolidColorBrush(Color.FromRgb(248, 81, 73)); };
             btnDel.MouseLeave += (s, e) => { btnDel.Background = Brushes.Transparent; ((System.Windows.Shapes.Path)btnDel.Child).Fill = TextMuted; };
             btnDel.MouseDown += (s, e) =>
@@ -2480,7 +2480,7 @@ namespace DevPlanner
                 Height = 42,
                 Background = Brushes.Transparent,
                 BorderThickness = new Thickness(0),
-                Content = VectorIcons.GetIcon(geometry, new SolidColorBrush(Color.FromRgb(150, 150, 150)), 12),
+                Content = WpfVectorIcons.GetIcon(geometry, new SolidColorBrush(Color.FromRgb(150, 150, 150)), 12),
                 ToolTip = tooltip,
                 Cursor = Cursors.Hand
             };
