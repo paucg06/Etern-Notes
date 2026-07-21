@@ -1362,12 +1362,15 @@ namespace EternNotes
                 {
                     var sub = task.SubTasks[i];
                     
-                    var subRow = new StackPanel
+                    var subRow = new Grid
                     {
-                        Orientation = Orientation.Horizontal,
                         Margin = new Thickness(0, 3, 0, 3),
-                        Cursor = Cursors.Hand
+                        Cursor = Cursors.Hand,
+                        Background = Brushes.Transparent
                     };
+                    subRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                    subRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                    subRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
                     var chkBox = new Border
                     {
@@ -1380,6 +1383,8 @@ namespace EternNotes
                         VerticalAlignment = VerticalAlignment.Center,
                         Margin = new Thickness(0, 0, 8, 0)
                     };
+                    subRow.Children.Add(chkBox);
+                    Grid.SetColumn(chkBox, 0);
 
                     var checkSymbol = WpfVectorIcons.GetIcon(WpfVectorIcons.Check, Brushes.White, 7);
                     checkSymbol.VerticalAlignment = VerticalAlignment.Center;
@@ -1400,11 +1405,58 @@ namespace EternNotes
                         FontSize = 11,
                         Foreground = sub.Completed ? TextMuted : TextActive,
                         TextDecorations = sub.Completed ? TextDecorations.Strikethrough : null,
-                        VerticalAlignment = VerticalAlignment.Center
+                        VerticalAlignment = VerticalAlignment.Center,
+                        TextWrapping = TextWrapping.Wrap
                     };
+                    subRow.Children.Add(chkText);
+                    Grid.SetColumn(chkText, 1);
 
-                    subRow.MouseDown += (s, e) =>
+                    // Actions Panel on hover
+                    var actionsPanel = new StackPanel { Orientation = Orientation.Horizontal, Visibility = Visibility.Collapsed, VerticalAlignment = VerticalAlignment.Center };
+                    subRow.Children.Add(actionsPanel);
+                    Grid.SetColumn(actionsPanel, 2);
+
+                    var btnEditSub = new Border
                     {
+                        Width = 18, Height = 18,
+                        Background = Brushes.Transparent,
+                        CornerRadius = new CornerRadius(3),
+                        Cursor = Cursors.Hand,
+                        Margin = new Thickness(4, 0, 0, 0)
+                    };
+                    var imgEdit = WpfVectorIcons.GetIcon(WpfVectorIcons.Edit, TextMuted, 9);
+                    imgEdit.HorizontalAlignment = HorizontalAlignment.Center;
+                    imgEdit.VerticalAlignment = VerticalAlignment.Center;
+                    btnEditSub.Child = imgEdit;
+                    actionsPanel.Children.Add(btnEditSub);
+
+                    btnEditSub.MouseEnter += (s, e) => { btnEditSub.Background = new SolidColorBrush(Color.FromArgb(25, 255, 255, 255)); imgEdit.Fill = TextActive; };
+                    btnEditSub.MouseLeave += (s, e) => { btnEditSub.Background = Brushes.Transparent; imgEdit.Fill = TextMuted; };
+
+                    var btnDeleteSub = new Border
+                    {
+                        Width = 18, Height = 18,
+                        Background = Brushes.Transparent,
+                        CornerRadius = new CornerRadius(3),
+                        Cursor = Cursors.Hand,
+                        Margin = new Thickness(4, 0, 0, 0)
+                    };
+                    var imgDelete = WpfVectorIcons.GetIcon(WpfVectorIcons.Trash, TextMuted, 9);
+                    imgDelete.HorizontalAlignment = HorizontalAlignment.Center;
+                    imgDelete.VerticalAlignment = VerticalAlignment.Center;
+                    btnDeleteSub.Child = imgDelete;
+                    actionsPanel.Children.Add(btnDeleteSub);
+
+                    btnDeleteSub.MouseEnter += (s, e) => { btnDeleteSub.Background = new SolidColorBrush(Color.FromArgb(25, 255, 255, 255)); imgDelete.Fill = new SolidColorBrush(Color.FromRgb(248, 81, 73)); };
+                    btnDeleteSub.MouseLeave += (s, e) => { btnDeleteSub.Background = Brushes.Transparent; imgDelete.Fill = TextMuted; };
+
+                    subRow.MouseEnter += (s, e) => { actionsPanel.Visibility = Visibility.Visible; };
+                    subRow.MouseLeave += (s, e) => { actionsPanel.Visibility = Visibility.Collapsed; };
+
+                    subRow.MouseLeftButtonDown += (s, e) =>
+                    {
+                        if (btnEditSub.IsMouseOver || btnDeleteSub.IsMouseOver) return;
+
                         sub.Completed = !sub.Completed;
                         checkSymbol.Visibility = sub.Completed ? Visibility.Visible : Visibility.Collapsed;
                         chkBox.Background = sub.Completed ? new SolidColorBrush(Color.FromRgb(35, 134, 54)) : new SolidColorBrush(Color.FromRgb(30, 30, 30));
@@ -1414,8 +1466,47 @@ namespace EternNotes
                         Storage.Save(db);
                     };
 
-                    subRow.Children.Add(chkBox);
-                    subRow.Children.Add(chkText);
+                    Action triggerEditSub = () =>
+                    {
+                        string newText = ShowInputDialog("Editar Subtarea", "Modificar el título de la subtarea:", sub.Title);
+                        if (!string.IsNullOrEmpty(newText))
+                        {
+                            sub.Title = newText;
+                            Storage.Save(db);
+                            RefreshWorkspace();
+                        }
+                    };
+
+                    btnEditSub.MouseDown += (s, e) =>
+                    {
+                        e.Handled = true;
+                        triggerEditSub();
+                    };
+
+                    Action triggerDeleteSub = () =>
+                    {
+                        task.SubTasks.Remove(sub);
+                        Storage.Save(db);
+                        RefreshWorkspace();
+                    };
+
+                    btnDeleteSub.MouseDown += (s, e) =>
+                    {
+                        e.Handled = true;
+                        triggerDeleteSub();
+                    };
+
+                    var subCtxMenu = new ContextMenu();
+                    var mnuEditSub = new MenuItem { Header = "Editar Subtarea" };
+                    mnuEditSub.Click += (s, e) => triggerEditSub();
+                    subCtxMenu.Items.Add(mnuEditSub);
+
+                    var mnuDeleteSub = new MenuItem { Header = "Eliminar Subtarea" };
+                    mnuDeleteSub.Click += (s, e) => triggerDeleteSub();
+                    subCtxMenu.Items.Add(mnuDeleteSub);
+
+                    subRow.ContextMenu = subCtxMenu;
+
                     subPanel.Children.Add(subRow);
                 }
             }
@@ -3607,6 +3698,92 @@ namespace EternNotes
                 "© 2026 Etern Studio.",
                 MessageBoxButton.OK
             );
+        }
+
+        // Helper: Show input dialog to rename items or insert text cleanly
+        private string ShowInputDialog(string title, string instruction, string defaultValue)
+        {
+            string result = null;
+
+            var win = new Window
+            {
+                WindowStyle = WindowStyle.None,
+                AllowsTransparency = true,
+                Background = Brushes.Transparent,
+                Width = 360,
+                Height = 180,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Owner = this
+            };
+
+            var border = new Border
+            {
+                Background = BgSidebar,
+                BorderBrush = BorderColor,
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(8),
+                Padding = new Thickness(20),
+                Margin = new Thickness(10),
+                Effect = new DropShadowEffect
+                {
+                    Color = Colors.Black,
+                    Direction = 270,
+                    ShadowDepth = 5,
+                    Opacity = 0.5,
+                    BlurRadius = 15
+                }
+            };
+            win.Content = border;
+
+            var grid = new Grid();
+            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            border.Child = grid;
+
+            var titleText = new TextBlock { Text = title, FontSize = 13, FontWeight = FontWeights.Bold, Foreground = TextActive, Margin = new Thickness(0, 0, 0, 10) };
+            grid.Children.Add(titleText);
+            Grid.SetRow(titleText, 0);
+
+            var formStack = new StackPanel();
+            grid.Children.Add(formStack);
+            Grid.SetRow(formStack, 1);
+
+            formStack.Children.Add(new TextBlock { Text = instruction, Foreground = TextMuted, FontSize = 9.5, FontWeight = FontWeights.Bold, Margin = new Thickness(0, 0, 0, 4) });
+            var txtInput = new TextBox { Text = defaultValue, Background = BgMain, Foreground = TextActive, BorderBrush = BorderColor, BorderThickness = new Thickness(1), Padding = new Thickness(5), FontSize = 12, CaretBrush = Brushes.White, SelectionBrush = new SolidColorBrush(Color.FromRgb(0, 122, 204)) };
+            formStack.Children.Add(txtInput);
+            
+            win.Loaded += (s, e) =>
+            {
+                txtInput.Focus();
+                txtInput.SelectAll();
+            };
+
+            var btnStack = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 10, 0, 0) };
+            grid.Children.Add(btnStack);
+            Grid.SetRow(btnStack, 2);
+
+            var btnCancel = CreateFlatButton("Cancelar", new SolidColorBrush(Color.FromRgb(50, 50, 50)), new SolidColorBrush(Color.FromRgb(60, 60, 60)), TextActive);
+            btnCancel.Width = 75;
+            btnCancel.Margin = new Thickness(0, 0, 10, 0);
+            btnCancel.Click += (s, e) => win.DialogResult = false;
+            btnStack.Children.Add(btnCancel);
+
+            var btnSave = CreateFlatButton("Aceptar", new SolidColorBrush(Color.FromRgb(0, 122, 204)), new SolidColorBrush(Color.FromRgb(20, 142, 224)), TextActive);
+            btnSave.Width = 75;
+            btnSave.FontWeight = FontWeights.Bold;
+            btnSave.Click += (s, e) =>
+            {
+                result = txtInput.Text.Trim();
+                win.DialogResult = true;
+            };
+            btnStack.Children.Add(btnSave);
+
+            if (win.ShowDialog() == true)
+            {
+                return result;
+            }
+            return null;
         }
     }
 
