@@ -1411,51 +1411,35 @@ namespace EternNotes
                     subRow.Children.Add(chkText);
                     Grid.SetColumn(chkText, 1);
 
-                    // Actions Panel on hover
+                    // Actions Panel on hover (single DotsHorizontal button)
                     var actionsPanel = new StackPanel { Orientation = Orientation.Horizontal, Visibility = Visibility.Collapsed, VerticalAlignment = VerticalAlignment.Center };
                     subRow.Children.Add(actionsPanel);
                     Grid.SetColumn(actionsPanel, 2);
 
-                    var btnEditSub = new Border
+                    var btnOptionsSub = new Border
                     {
                         Width = 18, Height = 18,
                         Background = Brushes.Transparent,
                         CornerRadius = new CornerRadius(3),
                         Cursor = Cursors.Hand,
-                        Margin = new Thickness(4, 0, 0, 0)
+                        Margin = new Thickness(4, 0, 0, 0),
+                        ToolTip = "Opciones"
                     };
-                    var imgEdit = WpfVectorIcons.GetIcon(WpfVectorIcons.Edit, TextMuted, 9);
-                    imgEdit.HorizontalAlignment = HorizontalAlignment.Center;
-                    imgEdit.VerticalAlignment = VerticalAlignment.Center;
-                    btnEditSub.Child = imgEdit;
-                    actionsPanel.Children.Add(btnEditSub);
+                    var imgOptions = WpfVectorIcons.GetIcon(WpfVectorIcons.DotsHorizontal, TextMuted, 10);
+                    imgOptions.HorizontalAlignment = HorizontalAlignment.Center;
+                    imgOptions.VerticalAlignment = VerticalAlignment.Center;
+                    btnOptionsSub.Child = imgOptions;
+                    actionsPanel.Children.Add(btnOptionsSub);
 
-                    btnEditSub.MouseEnter += (s, e) => { btnEditSub.Background = new SolidColorBrush(Color.FromArgb(25, 255, 255, 255)); imgEdit.Fill = TextActive; };
-                    btnEditSub.MouseLeave += (s, e) => { btnEditSub.Background = Brushes.Transparent; imgEdit.Fill = TextMuted; };
-
-                    var btnDeleteSub = new Border
-                    {
-                        Width = 18, Height = 18,
-                        Background = Brushes.Transparent,
-                        CornerRadius = new CornerRadius(3),
-                        Cursor = Cursors.Hand,
-                        Margin = new Thickness(4, 0, 0, 0)
-                    };
-                    var imgDelete = WpfVectorIcons.GetIcon(WpfVectorIcons.Trash, TextMuted, 9);
-                    imgDelete.HorizontalAlignment = HorizontalAlignment.Center;
-                    imgDelete.VerticalAlignment = VerticalAlignment.Center;
-                    btnDeleteSub.Child = imgDelete;
-                    actionsPanel.Children.Add(btnDeleteSub);
-
-                    btnDeleteSub.MouseEnter += (s, e) => { btnDeleteSub.Background = new SolidColorBrush(Color.FromArgb(25, 255, 255, 255)); imgDelete.Fill = new SolidColorBrush(Color.FromRgb(248, 81, 73)); };
-                    btnDeleteSub.MouseLeave += (s, e) => { btnDeleteSub.Background = Brushes.Transparent; imgDelete.Fill = TextMuted; };
+                    btnOptionsSub.MouseEnter += (s, e) => { btnOptionsSub.Background = new SolidColorBrush(Color.FromArgb(25, 255, 255, 255)); imgOptions.Fill = TextActive; };
+                    btnOptionsSub.MouseLeave += (s, e) => { btnOptionsSub.Background = Brushes.Transparent; imgOptions.Fill = TextMuted; };
 
                     subRow.MouseEnter += (s, e) => { actionsPanel.Visibility = Visibility.Visible; };
                     subRow.MouseLeave += (s, e) => { actionsPanel.Visibility = Visibility.Collapsed; };
 
                     subRow.MouseLeftButtonDown += (s, e) =>
                     {
-                        if (btnEditSub.IsMouseOver || btnDeleteSub.IsMouseOver) return;
+                        if (btnOptionsSub.IsMouseOver) return;
 
                         sub.Completed = !sub.Completed;
                         checkSymbol.Visibility = sub.Completed ? Visibility.Visible : Visibility.Collapsed;
@@ -1468,16 +1452,23 @@ namespace EternNotes
 
                     Action triggerEditSub = () =>
                     {
-                        string newText = ShowInputDialog("Editar Subtarea", "Modificar el título de la subtarea:", sub.Title);
-                        if (!string.IsNullOrEmpty(newText))
+                        var dialogRes = ShowInputDialog("Editar Subtarea", "Modificar el título de la subtarea:", sub.Title, showDelete: true);
+                        if (dialogRes != null && dialogRes.Confirmed)
                         {
-                            sub.Title = newText;
+                            if (dialogRes.Deleted)
+                            {
+                                task.SubTasks.Remove(sub);
+                            }
+                            else if (!string.IsNullOrEmpty(dialogRes.Value))
+                            {
+                                sub.Title = dialogRes.Value;
+                            }
                             Storage.Save(db);
                             RefreshWorkspace();
                         }
                     };
 
-                    btnEditSub.MouseDown += (s, e) =>
+                    btnOptionsSub.MouseDown += (s, e) =>
                     {
                         e.Handled = true;
                         triggerEditSub();
@@ -1488,12 +1479,6 @@ namespace EternNotes
                         task.SubTasks.Remove(sub);
                         Storage.Save(db);
                         RefreshWorkspace();
-                    };
-
-                    btnDeleteSub.MouseDown += (s, e) =>
-                    {
-                        e.Handled = true;
-                        triggerDeleteSub();
                     };
 
                     var subCtxMenu = new ContextMenu();
@@ -3700,10 +3685,18 @@ namespace EternNotes
             );
         }
 
-        // Helper: Show input dialog to rename items or insert text cleanly
-        private string ShowInputDialog(string title, string instruction, string defaultValue)
+        // Result class for Input Dialogs
+        public class InputDialogResult
         {
-            string result = null;
+            public bool Confirmed { get; set; }
+            public bool Deleted { get; set; }
+            public string Value { get; set; }
+        }
+
+        // Helper: Show input dialog to rename items or insert text cleanly
+        private InputDialogResult ShowInputDialog(string title, string instruction, string defaultValue, bool showDelete = false)
+        {
+            var result = new InputDialogResult { Confirmed = false, Deleted = false, Value = defaultValue };
 
             var win = new Window
             {
@@ -3741,9 +3734,46 @@ namespace EternNotes
             grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             border.Child = grid;
 
-            var titleText = new TextBlock { Text = title, FontSize = 13, FontWeight = FontWeights.Bold, Foreground = TextActive, Margin = new Thickness(0, 0, 0, 10) };
-            grid.Children.Add(titleText);
-            Grid.SetRow(titleText, 0);
+            // Title Header Grid
+            var titleGrid = new Grid { Margin = new Thickness(0, 0, 0, 10) };
+            titleGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            titleGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            grid.Children.Add(titleGrid);
+            Grid.SetRow(titleGrid, 0);
+
+            var titleText = new TextBlock { Text = title, FontSize = 13, FontWeight = FontWeights.Bold, Foreground = TextActive, VerticalAlignment = VerticalAlignment.Center };
+            titleGrid.Children.Add(titleText);
+            Grid.SetColumn(titleText, 0);
+
+            if (showDelete)
+            {
+                var btnDelete = new Border
+                {
+                    Width = 24,
+                    Height = 24,
+                    Background = Brushes.Transparent,
+                    CornerRadius = new CornerRadius(4),
+                    Cursor = Cursors.Hand,
+                    VerticalAlignment = VerticalAlignment.Center,
+                    ToolTip = "Eliminar subtarea"
+                };
+                var trashIcon = WpfVectorIcons.GetIcon(WpfVectorIcons.Trash, TextMuted, 11);
+                trashIcon.HorizontalAlignment = HorizontalAlignment.Center;
+                trashIcon.VerticalAlignment = VerticalAlignment.Center;
+                btnDelete.Child = trashIcon;
+                titleGrid.Children.Add(btnDelete);
+                Grid.SetColumn(btnDelete, 1);
+
+                btnDelete.MouseEnter += (s, e) => { btnDelete.Background = new SolidColorBrush(Color.FromArgb(20, 255, 255, 255)); trashIcon.Fill = new SolidColorBrush(Color.FromRgb(248, 81, 73)); };
+                btnDelete.MouseLeave += (s, e) => { btnDelete.Background = Brushes.Transparent; trashIcon.Fill = TextMuted; };
+
+                btnDelete.MouseDown += (s, e) =>
+                {
+                    result.Deleted = true;
+                    result.Confirmed = true;
+                    win.DialogResult = true;
+                };
+            }
 
             var formStack = new StackPanel();
             grid.Children.Add(formStack);
@@ -3774,7 +3804,8 @@ namespace EternNotes
             btnSave.FontWeight = FontWeights.Bold;
             btnSave.Click += (s, e) =>
             {
-                result = txtInput.Text.Trim();
+                result.Value = txtInput.Text.Trim();
+                result.Confirmed = true;
                 win.DialogResult = true;
             };
             btnStack.Children.Add(btnSave);

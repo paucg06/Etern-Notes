@@ -13,6 +13,7 @@ namespace EternNotes
         public const string Trash = "M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z";
         public const string Edit = "M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.07,6.19L3,17.25Z";
         public const string Plus = "M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z";
+        public const string DotsHorizontal = "M16,12A2,2 0 1,1 20,12A2,2 0 1,1 16,12M10,12A2,2 0 1,1 14,12A2,2 0 1,1 10,12M4,12A2,2 0 1,1 8,12A2,2 0 1,1 4,12Z";
         public const string Close = "M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z";
         public const string Minimize = "M20,14H4V12H20V14Z";
         public const string Maximize = "M4,4H20V20H4V4M6,6V18H18V6H6Z";
