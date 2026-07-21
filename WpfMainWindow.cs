@@ -1423,9 +1423,9 @@ namespace EternNotes
                         CornerRadius = new CornerRadius(3),
                         Cursor = Cursors.Hand,
                         Margin = new Thickness(4, 0, 0, 0),
-                        ToolTip = "Opciones"
+                        ToolTip = "Editar"
                     };
-                    var imgOptions = WpfVectorIcons.GetIcon(WpfVectorIcons.DotsHorizontal, TextMuted, 10);
+                    var imgOptions = WpfVectorIcons.GetIcon(WpfVectorIcons.Settings, TextMuted, 10);
                     imgOptions.HorizontalAlignment = HorizontalAlignment.Center;
                     imgOptions.VerticalAlignment = VerticalAlignment.Center;
                     btnOptionsSub.Child = imgOptions;
