@@ -422,7 +422,22 @@ namespace EternNotes
             titleBar.Child = titleBarGrid;
 
             // Logo & Title
-            var logoPanel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(15, 0, 10, 0), VerticalAlignment = VerticalAlignment.Center };
+            var logoPanel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(15, 0, 10, 0), VerticalAlignment = VerticalAlignment.Center, Background = Brushes.Transparent };
+            System.Windows.Shell.WindowChrome.SetIsHitTestVisibleInChrome(logoPanel, true);
+
+            // Drag window on title bar click, toggle maximize on double click
+            logoPanel.MouseLeftButtonDown += (s, e) =>
+            {
+                if (e.ClickCount == 2)
+                {
+                    this.WindowState = (this.WindowState == WindowState.Maximized) ? WindowState.Normal : WindowState.Maximized;
+                }
+                else if (e.LeftButton == MouseButtonState.Pressed)
+                {
+                    this.DragMove();
+                }
+            };
+
             var logoIcon = WpfVectorIcons.GetIcon(WpfVectorIcons.Gamepad, new SolidColorBrush(Color.FromRgb(0, 122, 204)), 18);
             logoPanel.Children.Add(logoIcon);
 
@@ -499,8 +514,8 @@ namespace EternNotes
             Grid.SetRow(menuBarControl, 1);
             mainGrid.RowDefinitions[1].Height = new GridLength(0);
 
-            // Hover triggers to show menu bar when mouse enters title bar or top area
-            titleBar.MouseEnter += (s, e) => ShowTopMenuBar();
+            // Hover triggers to show menu bar when mouse enters logoPanel (title bar) or menuBarControl
+            logoPanel.MouseEnter += (s, e) => ShowTopMenuBar();
             menuBarControl.MouseEnter += (s, e) => ShowTopMenuBar();
             mainGrid.MouseLeave += (s, e) => HideTopMenuBar();
 
