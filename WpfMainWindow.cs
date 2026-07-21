@@ -2494,13 +2494,14 @@ namespace EternNotes
         {
             bool isEdit = task != null;
 
+            // Window setup
             var win = new Window
             {
                 WindowStyle = WindowStyle.None,
                 AllowsTransparency = true,
                 Background = Brushes.Transparent,
-                Width = 460,
-                Height = 480,
+                Width = 440,
+                Height = 410,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
                 Owner = this
             };
@@ -2546,30 +2547,10 @@ namespace EternNotes
             var txtDesc = new TextBox { Text = isEdit ? task.Description : "", Background = BgMain, Foreground = TextActive, BorderBrush = BorderColor, BorderThickness = new Thickness(1), Padding = new Thickness(5), Margin = new Thickness(0, 0, 0, 10), FontSize = 12, CaretBrush = Brushes.White, SelectionBrush = new SolidColorBrush(Color.FromRgb(0, 122, 204)) };
             formStack.Children.Add(txtDesc);
 
-            // Columns row for priority and tags
-            var colGrid = new Grid { Margin = new Thickness(0, 0, 0, 10) };
-            colGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-            colGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(10) });
-            colGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1.2, GridUnitType.Star) });
-            formStack.Children.Add(colGrid);
-
-            var prStack = new StackPanel();
-            prStack.Children.Add(new TextBlock { Text = "Prioridad", Foreground = TextMuted, FontSize = 10, FontWeight = FontWeights.Bold, Margin = new Thickness(0, 0, 0, 4) });
-            var cbPriority = new ComboBox { };
-            cbPriority.Items.Add("Low");
-            cbPriority.Items.Add("Medium");
-            cbPriority.Items.Add("High");
-            cbPriority.SelectedItem = isEdit ? task.Priority : "Medium";
-            prStack.Children.Add(cbPriority);
-            colGrid.Children.Add(prStack);
-            Grid.SetColumn(prStack, 0);
-
-            var tgStack = new StackPanel();
-            tgStack.Children.Add(new TextBlock { Text = "Etiquetas (ej: iOS, Web)", Foreground = TextMuted, FontSize = 10, FontWeight = FontWeights.Bold, Margin = new Thickness(0, 0, 0, 4) });
-            var txtTags = new TextBox { Text = isEdit ? task.Tags : "", Background = BgMain, Foreground = TextActive, BorderBrush = BorderColor, BorderThickness = new Thickness(1), Padding = new Thickness(5), FontSize = 11.5, CaretBrush = Brushes.White, SelectionBrush = new SolidColorBrush(Color.FromRgb(0, 122, 204)) };
-            tgStack.Children.Add(txtTags);
-            colGrid.Children.Add(tgStack);
-            Grid.SetColumn(tgStack, 2);
+            // Tags full width
+            formStack.Children.Add(new TextBlock { Text = "Etiquetas (ej: iOS, Web)", Foreground = TextMuted, FontSize = 10, FontWeight = FontWeights.Bold, Margin = new Thickness(0, 0, 0, 4) });
+            var txtTags = new TextBox { Text = isEdit ? task.Tags : "", Background = BgMain, Foreground = TextActive, BorderBrush = BorderColor, BorderThickness = new Thickness(1), Padding = new Thickness(5), Margin = new Thickness(0, 0, 0, 10), FontSize = 11.5, CaretBrush = Brushes.White, SelectionBrush = new SolidColorBrush(Color.FromRgb(0, 122, 204)) };
+            formStack.Children.Add(txtTags);
 
             // Columns row for Assignee and Link
             var colGrid2 = new Grid { Margin = new Thickness(0, 0, 0, 10) };
@@ -2592,41 +2573,15 @@ namespace EternNotes
             colGrid2.Children.Add(lnStack);
             Grid.SetColumn(lnStack, 2);
 
-            // Deadline & Status Section (Pro DatePicker, Time dropdowns & Quick Presets)
-            var dateSection = new StackPanel { Margin = new Thickness(0, 0, 0, 10) };
-            formStack.Children.Add(dateSection);
+            // Deadline and Status row (Clean DatePicker for day selection)
+            var colGrid3 = new Grid { Margin = new Thickness(0, 0, 0, 10) };
+            colGrid3.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            colGrid3.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(10) });
+            colGrid3.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            formStack.Children.Add(colGrid3);
 
-            var dateHeaderGrid = new Grid { Margin = new Thickness(0, 0, 0, 4) };
-            dateHeaderGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1.4, GridUnitType.Star) });
-            dateHeaderGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(8) });
-            dateHeaderGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-            dateHeaderGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(8) });
-            dateHeaderGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-
-            var lblDate = new TextBlock { Text = "Fecha Límite", Foreground = TextMuted, FontSize = 10, FontWeight = FontWeights.Bold };
-            dateHeaderGrid.Children.Add(lblDate);
-            Grid.SetColumn(lblDate, 0);
-
-            var lblTime = new TextBlock { Text = "Hora (HH:MM)", Foreground = TextMuted, FontSize = 10, FontWeight = FontWeights.Bold };
-            dateHeaderGrid.Children.Add(lblTime);
-            Grid.SetColumn(lblTime, 2);
-
-            if (isEdit)
-            {
-                var lblSt = new TextBlock { Text = "Estado", Foreground = TextMuted, FontSize = 10, FontWeight = FontWeights.Bold };
-                dateHeaderGrid.Children.Add(lblSt);
-                Grid.SetColumn(lblSt, 4);
-            }
-            dateSection.Children.Add(dateHeaderGrid);
-
-            var dateRow = new Grid();
-            dateRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1.4, GridUnitType.Star) });
-            dateRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(8) });
-            dateRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-            dateRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(8) });
-            dateRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-            dateSection.Children.Add(dateRow);
-
+            var dlStack = new StackPanel();
+            dlStack.Children.Add(new TextBlock { Text = "Fecha Límite", Foreground = TextMuted, FontSize = 10, FontWeight = FontWeights.Bold, Margin = new Thickness(0, 0, 0, 4) });
             DateTime? initialDate = isEdit && task.Deadline != DateTime.MinValue ? (DateTime?)task.Deadline.Date : DateTime.Today.AddDays(1);
             var dpDate = new DatePicker
             {
@@ -2635,37 +2590,20 @@ namespace EternNotes
                 Foreground = TextActive,
                 BorderBrush = BorderColor,
                 BorderThickness = new Thickness(1),
-                Padding = new Thickness(3),
+                Padding = new Thickness(4),
                 FontSize = 11.5,
                 VerticalAlignment = VerticalAlignment.Center,
                 HorizontalAlignment = HorizontalAlignment.Stretch
             };
-            dateRow.Children.Add(dpDate);
-            Grid.SetColumn(dpDate, 0);
-
-            int initialHour = isEdit && task.Deadline != DateTime.MinValue ? task.Deadline.Hour : 18;
-            int initialMinute = isEdit && task.Deadline != DateTime.MinValue ? task.Deadline.Minute : 0;
-
-            var timeStack = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
-
-            var cbHour = new ComboBox { Width = 52, FontSize = 11 };
-            for (int h = 0; h < 24; h++) cbHour.Items.Add(h.ToString("D2"));
-            cbHour.SelectedItem = initialHour.ToString("D2");
-            timeStack.Children.Add(cbHour);
-
-            timeStack.Children.Add(new TextBlock { Text = ":", Foreground = TextActive, FontSize = 12, FontWeight = FontWeights.Bold, Margin = new Thickness(2, 0, 2, 0), VerticalAlignment = VerticalAlignment.Center });
-
-            var cbMin = new ComboBox { Width = 52, FontSize = 11 };
-            cbMin.Items.Add("00"); cbMin.Items.Add("15"); cbMin.Items.Add("30"); cbMin.Items.Add("45");
-            cbMin.SelectedItem = (initialMinute - (initialMinute % 15)).ToString("D2");
-            timeStack.Children.Add(cbMin);
-
-            dateRow.Children.Add(timeStack);
-            Grid.SetColumn(timeStack, 2);
+            dlStack.Children.Add(dpDate);
+            colGrid3.Children.Add(dlStack);
+            Grid.SetColumn(dlStack, 0);
 
             ComboBox cbStatus = null;
             if (isEdit)
             {
+                var stStack = new StackPanel();
+                stStack.Children.Add(new TextBlock { Text = "Estado", Foreground = TextMuted, FontSize = 10, FontWeight = FontWeights.Bold, Margin = new Thickness(0, 0, 0, 4) });
                 cbStatus = new ComboBox { FontSize = 11, HorizontalAlignment = HorizontalAlignment.Stretch, VerticalAlignment = VerticalAlignment.Center };
                 foreach (var col in activeProject.Columns)
                 {
@@ -2673,34 +2611,11 @@ namespace EternNotes
                 }
                 var currentCol = activeProject.Columns.FirstOrDefault(c => c.Id == task.Status);
                 cbStatus.SelectedItem = currentCol != null ? currentCol.Name : activeProject.Columns[0].Name;
-
-                dateRow.Children.Add(cbStatus);
-                Grid.SetColumn(cbStatus, 4);
+                
+                stStack.Children.Add(cbStatus);
+                colGrid3.Children.Add(stStack);
+                Grid.SetColumn(stStack, 2);
             }
-
-            // Quick Presets Row
-            var presetsStack = new WrapPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 6, 0, 0) };
-
-            Action<string, DateTime?> addPresetChip = (labelText, targetDate) =>
-            {
-                var btnChip = CreateFlatButton(labelText, new SolidColorBrush(Color.FromRgb(35, 35, 38)), new SolidColorBrush(Color.FromRgb(50, 50, 55)), TextMuted);
-                btnChip.FontSize = 9.5;
-                btnChip.Padding = new Thickness(7, 3, 7, 3);
-                btnChip.Margin = new Thickness(0, 0, 5, 4);
-                btnChip.Click += (s, e) =>
-                {
-                    dpDate.SelectedDate = targetDate;
-                };
-                presetsStack.Children.Add(btnChip);
-            };
-
-            addPresetChip("📅 Hoy", DateTime.Today);
-            addPresetChip("☀️ Mañana", DateTime.Today.AddDays(1));
-            addPresetChip("⚡ En 3 Días", DateTime.Today.AddDays(3));
-            addPresetChip("🗓️ En 1 Semana", DateTime.Today.AddDays(7));
-            addPresetChip("❌ Sin Fecha", null);
-
-            dateSection.Children.Add(presetsStack);
 
             var btnStack = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 10, 0, 0) };
             grid.Children.Add(btnStack);
@@ -2727,18 +2642,13 @@ namespace EternNotes
                 if (dpDate.SelectedDate.HasValue)
                 {
                     DateTime d = dpDate.SelectedDate.Value;
-                    int hr = 18;
-                    int mn = 0;
-                    if (cbHour.SelectedItem != null) int.TryParse(cbHour.SelectedItem.ToString(), out hr);
-                    if (cbMin.SelectedItem != null) int.TryParse(cbMin.SelectedItem.ToString(), out mn);
-                    deadlineVal = new DateTime(d.Year, d.Month, d.Day, hr, mn, 0);
+                    deadlineVal = new DateTime(d.Year, d.Month, d.Day, 18, 0, 0);
                 }
 
                 if (isEdit)
                 {
                     task.Title = txtTitle.Text.Trim();
                     task.Description = txtDesc.Text.Trim();
-                    task.Priority = cbPriority.SelectedItem.ToString();
                     task.Tags = txtTags.Text.Trim();
                     task.Assignee = txtAssignee.Text.Trim();
                     task.Link = txtLink.Text.Trim();
@@ -2762,7 +2672,7 @@ namespace EternNotes
                         ProjectId = activeProject.Id,
                         Title = txtTitle.Text.Trim(),
                         Description = txtDesc.Text.Trim(),
-                        Priority = cbPriority.SelectedItem.ToString(),
+                        Priority = "Medium",
                         Tags = txtTags.Text.Trim(),
                         Assignee = txtAssignee.Text.Trim(),
                         Link = txtLink.Text.Trim(),
