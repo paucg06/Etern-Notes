@@ -514,37 +514,30 @@ namespace EternNotes
             Grid.SetRow(menuBarControl, 1);
             mainGrid.RowDefinitions[1].Height = new GridLength(0);
 
-            // Smooth top zone mouse movement listener for seamless title-bar -> menu-bar interaction
-            mainGrid.MouseMove += (s, e) =>
-            {
-                if (isMenuContextOpen) return;
-
-                Point pos = e.GetPosition(mainGrid);
-                bool isMenuBarVisible = (menuBarControl != null && menuBarControl.Visibility == Visibility.Visible);
-                double activeTopZoneHeight = isMenuBarVisible ? 70.0 : 36.0;
-
-                // Exclude window control buttons (_ □ X) on top right (~140px width)
-                bool isOverWindowControls = (pos.Y <= 36.0 && pos.X >= (mainGrid.ActualWidth - 140.0));
-
-                if (pos.Y <= activeTopZoneHeight && !isOverWindowControls)
-                {
-                    ShowTopMenuBar();
-                }
-                else if (pos.Y > activeTopZoneHeight)
-                {
-                    HideTopMenuBar();
-                }
-            };
-
-            mainGrid.MouseLeave += (s, e) => HideTopMenuBar();
-
             // 3. Content Layout Grid (Row 2)
             contentGrid = new Grid();
+            System.Windows.Shell.WindowChrome.SetIsHitTestVisibleInChrome(contentGrid, true);
             contentGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(240), MinWidth = 180, MaxWidth = 400 }); // Sidebar
             contentGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(4) }); // Splitter
             contentGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) }); // Workspace
             mainGrid.Children.Add(contentGrid);
             Grid.SetRow(contentGrid, 2);
+
+            // Hover triggers to show/hide menu bar:
+            // 1) Hovering over logoPanel (title bar) or menuBarControl keeps menu bar open
+            logoPanel.MouseEnter += (s, e) => ShowTopMenuBar();
+            menuBarControl.MouseEnter += (s, e) => ShowTopMenuBar();
+
+            // 2) Hovering over window controls (_ □ X) or main workspace (contentGrid) closes menu bar
+            controlsPanel.MouseEnter += (s, e) =>
+            {
+                if (!isMenuContextOpen) HideTopMenuBar();
+            };
+
+            contentGrid.MouseEnter += (s, e) =>
+            {
+                if (!isMenuContextOpen) HideTopMenuBar();
+            };
 
             // Sidebar Column 0 (Border container to prevent bottom-left corner bleed)
             var sidebarGrid = new Border
