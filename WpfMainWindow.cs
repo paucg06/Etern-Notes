@@ -57,16 +57,31 @@ namespace EternNotes
         [STAThread]
         public static void Main()
         {
-            var app = new Application();
-            app.Run(new MainWindow());
+            try
+            {
+                AppDomain.CurrentDomain.UnhandledException += (s, e) =>
+                {
+                    System.IO.File.WriteAllText("crash_log.txt", e.ExceptionObject.ToString());
+                };
+                var app = new Application();
+                app.DispatcherUnhandledException += (s, e) =>
+                {
+                    System.IO.File.WriteAllText("crash_log.txt", e.Exception.ToString());
+                };
+                app.Run(new MainWindow());
+            }
+            catch (Exception ex)
+            {
+                System.IO.File.WriteAllText("crash_log.txt", ex.ToString());
+            }
         }
 
         public MainWindow()
         {
             // Set Window parameters for modern borderless look
             WindowStyle = WindowStyle.None;
-            AllowsTransparency = true;
-            Background = Brushes.Transparent;
+            AllowsTransparency = false;
+            Background = new SolidColorBrush(Color.FromRgb(18, 18, 18));
             Width = 1120;
             Height = 720;
             WindowStartupLocation = WindowStartupLocation.CenterScreen;
