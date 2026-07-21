@@ -1473,15 +1473,17 @@ namespace EternNotes
             // Document link block
             if (!string.IsNullOrEmpty(task.Link))
             {
-                var linkPanel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 8), Cursor = Cursors.Hand };
+                var linkPanel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 8), Cursor = Cursors.Hand, VerticalAlignment = VerticalAlignment.Center };
                 var linkIcon = WpfVectorIcons.GetIcon(WpfVectorIcons.Link, TextMuted, 11);
+                linkIcon.VerticalAlignment = VerticalAlignment.Center;
                 var linkText = new TextBlock
                 {
                     Text = "Document Link →",
                     FontFamily = new FontFamily("Segoe UI"),
                     FontSize = 10.5,
                     Foreground = TextMuted,
-                    Margin = new Thickness(6, 0, 0, 0)
+                    Margin = new Thickness(6, 1, 0, 0),
+                    VerticalAlignment = VerticalAlignment.Center
                 };
                 
                 linkPanel.Children.Add(linkIcon);
@@ -1506,7 +1508,7 @@ namespace EternNotes
             }
 
             // Card Footer Grid (assignee left, actions stack right)
-            var cardFooter = new Grid();
+            var cardFooter = new Grid { VerticalAlignment = VerticalAlignment.Center };
             cardFooter.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             cardFooter.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             cardFooter.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1.3, GridUnitType.Star) });
@@ -1517,6 +1519,7 @@ namespace EternNotes
             {
                 var assigneeStack = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Center };
                 var userIcon = WpfVectorIcons.GetIcon(WpfVectorIcons.User, new SolidColorBrush(Color.FromRgb(227, 179, 65)), 11);
+                userIcon.VerticalAlignment = VerticalAlignment.Center;
                 var txtAssignee = new TextBlock
                 {
                     Text = task.Assignee,
@@ -1524,7 +1527,8 @@ namespace EternNotes
                     FontSize = 10,
                     FontWeight = FontWeights.Medium,
                     Foreground = new SolidColorBrush(Color.FromRgb(227, 179, 65)),
-                    Margin = new Thickness(5, 0, 0, 0)
+                    Margin = new Thickness(5, 1, 0, 0),
+                    VerticalAlignment = VerticalAlignment.Center
                 };
                 assigneeStack.Children.Add(userIcon);
                 assigneeStack.Children.Add(txtAssignee);
@@ -1537,14 +1541,16 @@ namespace EternNotes
             
             if (task.Deadline != DateTime.MinValue)
             {
-                var calIcon = WpfVectorIcons.GetIcon(WpfVectorIcons.Calendar, TextMuted, 10.5);
+                var calIcon = WpfVectorIcons.GetIcon(WpfVectorIcons.Calendar, TextMuted, 11);
+                calIcon.VerticalAlignment = VerticalAlignment.Center;
                 var txtDeadline = new TextBlock
                 {
                     Text = task.Deadline.ToString("dd MMM"),
                     FontFamily = new FontFamily("Segoe UI"),
-                    FontSize = 9.5,
+                    FontSize = 10,
                     Foreground = TextMuted,
-                    Margin = new Thickness(4, 0, 8, 0)
+                    Margin = new Thickness(4, 1, 8, 0),
+                    VerticalAlignment = VerticalAlignment.Center
                 };
 
                 // Set deadline alerts
@@ -1574,7 +1580,8 @@ namespace EternNotes
                 Padding = new Thickness(4),
                 Cursor = Cursors.Hand,
                 Margin = new Thickness(0, 0, 4, 0),
-                CornerRadius = new CornerRadius(3)
+                CornerRadius = new CornerRadius(3),
+                VerticalAlignment = VerticalAlignment.Center
             };
             btnEdit.Child = WpfVectorIcons.GetIcon(WpfVectorIcons.Edit, TextMuted, 13);
             btnEdit.MouseEnter += (s, e) => { btnEdit.Background = new SolidColorBrush(Color.FromArgb(30, 255, 255, 255)); ((System.Windows.Shapes.Path)btnEdit.Child).Fill = TextActive; };
@@ -1588,7 +1595,8 @@ namespace EternNotes
                 Background = Brushes.Transparent,
                 Padding = new Thickness(4),
                 Cursor = Cursors.Hand,
-                CornerRadius = new CornerRadius(3)
+                CornerRadius = new CornerRadius(3),
+                VerticalAlignment = VerticalAlignment.Center
             };
             btnDel.Child = WpfVectorIcons.GetIcon(WpfVectorIcons.Trash, TextMuted, 13);
             btnDel.MouseEnter += (s, e) => { btnDel.Background = new SolidColorBrush(Color.FromArgb(30, 255, 255, 255)); ((System.Windows.Shapes.Path)btnDel.Child).Fill = new SolidColorBrush(Color.FromRgb(248, 81, 73)); };
