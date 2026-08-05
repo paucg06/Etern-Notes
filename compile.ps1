@@ -25,11 +25,14 @@ $references = @(
 
 Write-Host "Compilando aplicación nativa WPF C#..." -ForegroundColor Cyan
 
+$manifest = Join-Path $scriptDir "app.manifest"
+
 # Compile arguments
 # /target:winexe ensures it runs as a pure Windows Application with no console popup.
 $args = @(
     "/target:winexe",
     "/out:$outputExe",
+    "/win32manifest:$manifest",
     "/optimize"
 )
 

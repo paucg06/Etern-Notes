@@ -4,6 +4,15 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Text;
+using System.Reflection;
+
+[assembly: AssemblyTitle("Etern Notes")]
+[assembly: AssemblyDescription("Etern Notes - Developer Task & Notes Planner")]
+[assembly: AssemblyCompany("Etern Studio")]
+[assembly: AssemblyProduct("Etern Notes")]
+[assembly: AssemblyCopyright("Copyright © Etern Studio 2026")]
+[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyFileVersion("1.0.0.0")]
 
 namespace EternNotes
 {
